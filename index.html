@@ -1,0 +1,1848 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth"><head><script data-bard-client-injected="true">(function(firebaseConfig, initialAuthToken, appId) {
+        window.__firebase_config = firebaseConfig;
+        window.__initial_auth_token = initialAuthToken;
+        window.__app_id = appId;
+            })("\n{\n  \"apiKey\": \"REDACTED\",\n  \"authDomain\": \"bard-frontend.firebaseapp.com\",\n  \"projectId\": \"bard-frontend\",\n  \"storageBucket\": \"bard-frontend.firebasestorage.app\",\n  \"messagingSenderId\": \"175205271074\",\n  \"appId\": \"1:175205271074:web:2b7bd4d34d33bf38e6ec7b\"\n}\n","eyJhbGciOiJSUzI1NiIsImtpZCI6IjExNjRiNzdiNDMzZDdhMDAyMWI4NjE4YjhjYTU3ZTMyZGI5MWUxMTMiLCJ0eXAiOiJKV1QifQ.eyJzdWIiOiJmaXJlYmFzZS1hZG1pbnNkay1mYnN2Y0BiYXJkLWZyb250ZW5kLmlhbS5nc2VydmljZWFjY291bnQuY29tIiwiYXVkIjoiaHR0cHM6Ly9pZGVudGl0eXRvb2xraXQuZ29vZ2xlYXBpcy5jb20vZ29vZ2xlLmlkZW50aXR5LmlkZW50aXR5dG9vbGtpdC52MS5JZGVudGl0eVRvb2xraXQiLCJ1aWQiOiIxNzY5MTM1Mzc3NzUzMTE2MjMzMiIsImlzcyI6ImZpcmViYXNlLWFkbWluc2RrLWZic3ZjQGJhcmQtZnJvbnRlbmQuaWFtLmdzZXJ2aWNlYWNjb3VudC5jb20iLCJjbGFpbXMiOnsiYXBwSWQiOiJjXzQ5ODM3YzQ3NmE5M2M1NWRfaW5kZXguaHRtbC0xNzYifSwiZXhwIjoxNzkwOTY0ODA0LCJpYXQiOjE3OTA5NjEyMDQsImFsZyI6IlJTMjU2In0.Zb5qbEGShK8tiVhwJrghEREY4e4hJMg3MWPhGbMxgh6_DF4DqJMn_SppDqtAhyBVfkX4vVMaELtR2r9xzEMsit7THHomxyp8ZmQ4UY3vtpslxX3NsRJMi7zfbCk_pMKji06WS7CvRd-VLOeTmlx17tjqgPBqHxvRi7VH2WGuyfdKSjOJ6FKLeVayb8tMHVo5Gxrry5oYVSOCtg4khpcnKKkkBsQXGe16XekAvLcJKHh_ISe5QCQpkiUdbcYyDDyq0dybbPw8mqJUyT48JR_BOff0kqBp6_-CU27kkutA2KIahq3YjTh0o2JuzZCJpF_1KqGJ4KHt8l8EBGHebEK_cA","c_49837c476a93c55d_index.html-176")</script><script data-bard-client-injected="true">
+  document.addEventListener('input', (event) => {
+    if (event.target && (event.target.isContentEditable || event.target.hasAttribute('contenteditable'))) {
+      const clonedDoc = document.cloneNode(true);
+      const injectedScripts = clonedDoc.querySelectorAll('[data-bard-client-injected="true"]');
+      injectedScripts.forEach(el => el.remove());
+      window.parent.postMessage({
+        type: 'inlineEdit',
+        html: '<!DOCTYPE html>\n' + clonedDoc.documentElement.outerHTML
+      }, '*');
+    }
+  });
+</script><script data-bard-client-injected="true">(function(){'use strict';window.addEventListener("message",a=>{a.data&&a.data.type==="SUPPLEMENTAL_DATA_UPDATE"&&window.dispatchEvent(new CustomEvent("supplementaldataupdate",{detail:a.data.data}))});}).call(this);
+</script><script data-bard-client-injected="true">(function() {
+  const SCROLL_KEYS = new Set([
+    'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight',
+    ' ', 'Spacebar', 'PageUp', 'PageDown', 'Home', 'End',
+  ]);
+  const HORIZONTAL_KEYS = new Set(['ArrowLeft', 'ArrowRight']);
+
+  function isTextEntryTarget(target) {
+    if (!target) return false;
+    const tagName = target.tagName;
+    return tagName === 'INPUT' || tagName === 'TEXTAREA' ||
+        tagName === 'SELECT' || target.isContentEditable === true;
+  }
+
+  // An element absorbs the key only if it both overflows on the axis being
+  // scrolled and is configured to scroll on that axis. The cheap dimension
+  // test runs first because getComputedStyle forces a style recalc, and this
+  // runs on every keypress. Each axis is read from its own longhand: the
+  // 'overflow' shorthand serializes as two values when the axes differ, which
+  // is the common 'overflow-x: hidden; overflow-y: auto' pane.
+  function canScroll(node, horizontal) {
+    const overflows = horizontal ? node.scrollWidth > node.clientWidth
+                                 : node.scrollHeight > node.clientHeight;
+    if (!overflows) return false;
+    const style = window.getComputedStyle(node);
+    const overflow = horizontal ? style.overflowX : style.overflowY;
+    return overflow === 'auto' || overflow === 'scroll';
+  }
+
+  // Walks up from the event target so nested scrollers keep their behavior.
+  // <body> is included because pages that pin the root height make it the
+  // scroll container.
+  function hasScrollableAncestor(target, horizontal) {
+    let node = target;
+    while (node && node !== document.documentElement) {
+      if (canScroll(node, horizontal)) return true;
+      node = node.parentElement;
+    }
+    return false;
+  }
+
+  function rootCanScroll(horizontal) {
+    const scroller = document.scrollingElement || document.documentElement;
+    if (!scroller) return false;
+    // Tolerate a pixel of rounding so subpixel layouts do not look scrollable.
+    return horizontal ? scroller.scrollWidth > window.innerWidth + 1
+                      : scroller.scrollHeight > window.innerHeight + 1;
+  }
+
+  window.addEventListener('keydown', function(event) {
+    if (!SCROLL_KEYS.has(event.key)) return;
+    if (event.defaultPrevented) return;
+    // Alt and Meta turn arrows into browser history navigation, and Ctrl is
+    // reserved for shortcuts, so none of them are scroll intent.
+    if (event.altKey || event.metaKey || event.ctrlKey) return;
+
+    const target = event.target;
+    if (isTextEntryTarget(target)) return;
+
+    // Anything that can still absorb the scroll gets to keep it.
+    const horizontal = HORIZONTAL_KEYS.has(event.key);
+    if (rootCanScroll(horizontal)) return;
+    if (hasScrollableAncestor(target, horizontal)) return;
+
+    event.preventDefault();
+  }, {capture: true, passive: false});
+})();</script><script data-bard-client-injected="true">(function() {
+  // Ensure this script is executed only once
+  if (window.firebaseAuthBridgeScriptLoaded) {
+    return;
+  }
+  window.firebaseAuthBridgeScriptLoaded = true;
+
+  let nextTokenPromiseId = 0;
+
+  // Stores { resolve, reject } for ongoing token requests
+  const pendingTokenPromises = {};
+
+  // Listen for messages from the Host Application
+  window.addEventListener('message', function(event) {
+
+    const messageData = event.data;
+
+  if (messageData && messageData.type === 'RESOLVE_NEW_FIREBASE_TOKEN') {
+      const { success, token, error, promiseId } = messageData ?? {};
+      if (pendingTokenPromises[promiseId]) {
+        if (success) {
+          pendingTokenPromises[promiseId].resolve(token);
+        } else {
+          pendingTokenPromises[promiseId].reject(new Error(error || 'Token refresh failed from host.'));
+        }
+        delete pendingTokenPromises[promiseId];
+      }
+    }
+  });
+
+  // Expose a function for the Generated App to request a new Firebase token
+  window.requestNewFirebaseToken = function() {
+    const currentPromiseId = nextTokenPromiseId++;
+    const promise = new Promise((resolve, reject) => {
+      pendingTokenPromises[currentPromiseId] = { resolve, reject };
+    });
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage({
+        type: 'REQUEST_NEW_FIREBASE_TOKEN',
+        promiseId: currentPromiseId
+      }, '*');
+    } else {
+      pendingTokenPromises[currentPromiseId].reject(new Error('No parent window to request token from.'));
+      delete pendingTokenPromises[currentPromiseId];
+    }
+    return promise;
+  };
+})();</script><script data-bard-client-injected="true">
+let realOriginalGetUserMedia = null;
+if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+  realOriginalGetUserMedia = navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
+}
+
+(function() {
+  if (navigator.mediaDevices && navigator.mediaDevices.__proto__) {
+    try {
+      Object.defineProperty(navigator.mediaDevices.__proto__, 'getUserMedia', {
+        get: function() {
+          return undefined; // Or throw an error
+        },
+        configurable: false
+      });
+    } catch (error) {
+      console.error("Error defining prototype getter:", error);
+    }
+  }
+})();
+
+(function() {
+  const pendingMediaResolvers = {};
+  let nextMediaPromiseId = 0;
+
+  function requestMediaPermissions(constraints) {
+    const mediaPromiseId = nextMediaPromiseId++;
+    const promise = new Promise((resolve, reject) => {
+      pendingMediaResolvers[mediaPromiseId] = (granted) => {
+        delete pendingMediaResolvers[mediaPromiseId];
+        resolve(granted);
+      };
+    });
+
+    window.parent.postMessage({
+      type: 'requestMediaPermission',
+      constraints: constraints,
+      promiseId: mediaPromiseId,
+    }, '*');
+
+    return promise;
+  }
+
+  let originalGetUserMedia = realOriginalGetUserMedia;
+
+  function interceptGetUserMedia() {
+    if (navigator.mediaDevices) {
+      Object.defineProperty(navigator.mediaDevices, 'getUserMedia', {
+        value: function(constraints) {
+          return requestMediaPermissions(constraints).then((granted) => {
+            if (granted) {
+              if (originalGetUserMedia) {
+                return originalGetUserMedia(constraints);
+              } else {
+                throw new Error("Original getUserMedia not available.");
+              }
+            } else {
+              throw new DOMException('Permission denied', 'NotAllowedError');
+            }
+          });
+        },
+        writable: false,
+        configurable: false
+      });
+    }
+  }
+
+  interceptGetUserMedia();
+
+  const observer = new MutationObserver(function(mutationsList, observer) {
+    for (const mutation of mutationsList) {
+      if (mutation.type === 'reconfigured' && mutation.name === 'getUserMedia' && mutation.object === navigator.mediaDevices) {
+        interceptGetUserMedia();
+      } else if (mutation.type === 'attributes' && mutation.attributeName === 'getUserMedia' && mutation.target === navigator.mediaDevices) {
+        interceptGetUserMedia();
+      } else if (mutation.type === 'childList' && mutation.addedNodes) {
+        mutation.addedNodes.forEach(node => {
+          if (node === navigator.mediaDevices) {
+            interceptGetUserMedia();
+          }
+        });
+      }
+    }
+  });
+
+  function interceptSpeechRecognition() {
+    if (!window.SpeechRecognition && !window.webkitSpeechRecognition) {
+      return;
+    }
+
+    const OriginalSpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    const SpeechRecognitionWrapper = function(...args) {
+      const recognizer = new OriginalSpeechRecognition(...args);
+      const originalStart = recognizer.start.bind(recognizer);
+
+      recognizer.start = function() {
+        requestMediaPermissions({ audio: true }).then(granted => {
+          if (granted) {
+            originalStart();
+          } else {
+            const errorEvent = new SpeechRecognitionErrorEvent('error');
+            errorEvent.error = 'not-allowed'; // This is the standard error for permission denial.
+            recognizer.dispatchEvent(errorEvent);
+          }
+        });
+      };
+
+      return recognizer;
+    };
+
+    SpeechRecognitionWrapper.prototype = OriginalSpeechRecognition.prototype;
+    SpeechRecognitionWrapper.prototype.constructor = SpeechRecognitionWrapper;
+
+    if (window.SpeechRecognition) {
+      window.SpeechRecognition = SpeechRecognitionWrapper;
+    }
+    if (window.webkitSpeechRecognition) {
+      window.webkitSpeechRecognition = SpeechRecognitionWrapper;
+    }
+  }
+
+  interceptSpeechRecognition();
+
+  window.addEventListener('message', function(event) {
+    if (event.data) {
+      if (event.data.type === 'resolveMediaPermission') {
+        const { promiseId, granted } = event.data;
+        if (pendingMediaResolvers[promiseId]) {
+          pendingMediaResolvers[promiseId](granted);
+        }
+      }
+    }
+  });
+
+})();</script><script ws-interception-config="{&quot;parentOrigin&quot;:&quot;https://gemini.google.com&quot;,&quot;proxiedDomains&quot;:[]}" data-bard-client-injected="true">(function(){'use strict';var u=typeof Object.defineProperties=="function"?Object.defineProperty:function(b,d,e){if(b==Array.prototype||b==Object.prototype)return b;b[d]=e.value;return b};function v(b){b=["object"==typeof globalThis&&globalThis,b,"object"==typeof window&&window,"object"==typeof self&&self,"object"==typeof global&&global];for(var d=0;d<b.length;++d){var e=b[d];if(e&&e.Math==Math)return e}throw Error("Cannot find global object");}var w=v(this);
+function y(b,d){if(d)a:{var e=w;b=b.split(".");for(var h=0;h<b.length-1;h++){var k=b[h];if(!(k in e))break a;e=e[k]}b=b[b.length-1];h=e[b];d=d(h);d!=h&&d!=null&&u(e,b,{configurable:!0,writable:!0,value:d})}}function z(b){function d(h){return b.next(h)}function e(h){return b.throw(h)}return new Promise(function(h,k){function m(n){n.done?h(n.value):Promise.resolve(n.value).then(d,e).then(m,k)}m(b.next())})}y("globalThis",function(b){return b||w});/*
+
+ Copyright The Closure Library Authors.
+ SPDX-License-Identifier: Apache-2.0
+*/
+function A(b,d){function e(){}e.prototype=d.prototype;b.j=d.prototype;b.prototype=new e;b.prototype.constructor=b;b.h=function(h,k,m){for(var n=Array(arguments.length-2),p=2;p<arguments.length;p++)n[p-2]=arguments[p];return d.prototype[k].apply(h,n)}};function B(b,d,e="*"){function h(a){if(typeof a==="string")return F.encode(a).buffer;if(a instanceof ArrayBuffer)return a.slice(0);if(ArrayBuffer.isView(a))return a.buffer.slice(a.byteOffset,a.byteOffset+a.byteLength);throw Error("Invalid data type");}function k(a){a=h(a);var f={type:"send",data:new Uint8Array(a)},g;(g=r)==null||g.postMessage(f,[a])}function m(){if(!r)throw Error("Data port not captured yet.");r.onmessage=a=>{if(a.data.type==="message"){a=new MessageEvent("message",{data:G.decode(a.data.data)});
+let f;(f=c.onmessage)==null||f.call(c,a);c.dispatchEvent(a)}}}function n(){if(!t)throw Error("Control port not captured yet.");t.onmessage=a=>{switch(a.data.type){case "open":l=1;var f=new Event("open"),g;(g=c.onopen)==null||g.call(c,f);c.dispatchEvent(f);q.forEach(H=>{k(H)});q=[];break;case "close":g=a.data;l=3;g=new CloseEvent("close",{code:g.code,reason:g.reason,wasClean:g.wasClean});(f=c.onclose)==null||f.call(c,g);c.dispatchEvent(g);break;case "error":l=3;f=new Event("error");let x;(x=c.onerror)==
+null||x.call(c,f);c.dispatchEvent(f)}}}function p(a){return z(function*(){var f=new MessageChannel;t=f.port1;var g=new MessageChannel;r=g.port1;n();m();window.parent.postMessage({type:"websocket_open",portOrdering:["control","data"],url:b,protocols:a||[],connectionId:I},e,[f.port2,g.port2])}())}var c=Reflect.construct(EventTarget,[],new.target);c.CONNECTING=0;c.OPEN=1;c.CLOSING=2;c.CLOSED=3;c.url=b;c.binaryType="arraybuffer";c.protocol="";c.i="";var l=0,t=null,r=null,q=[],F=new TextEncoder,G=new TextDecoder;
+c.onopen=null;c.onmessage=null;c.onclose=null;c.onerror=null;Object.defineProperty(c,"readyState",{get:()=>l,enumerable:!0,configurable:!0});Object.defineProperty(c,"bufferedAmount",{get:()=>{var a=0;q.forEach(f=>{a+=typeof f==="string"?f.length:f.byteLength});return a},enumerable:!0,configurable:!0});var I=function(){var a;return((a=globalThis.crypto)==null?0:a.randomUUID)?globalThis.crypto.randomUUID():"xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g,f=>{var g=Math.random()*16|0;return(f===
+"x"?g:g&3|8).toString(16)})}();c.send=a=>{if(l===1)a instanceof Blob?a.arrayBuffer().then(f=>{k(f)}):k(a);else if(l===0)if(typeof a==="string")q.push(a);else if(a instanceof ArrayBuffer||ArrayBuffer.isView(a))q.push(h(a));else throw Error("Sending Blob is not supported before the connection is open.");else console.debug("WebSocket send called in CLOSING or CLOSED state; ignored.")};c.close=(a=1E3,f="")=>{if(l!==2&&l!==3){l=2;a={type:"close",code:a,reason:f,wasClean:a===1E3};var g;(g=t)==null||g.postMessage(a)}};
+Promise.resolve().then(()=>p(d));return c}A(B,EventTarget);var C=document.currentScript,D=C==null?void 0:C.getAttribute("ws-interception-config");if(!D)throw Error("WebSocket Interceptor: Missing ws-interception-config attribute in the script tag.");var E=JSON.parse(D);if(!E.parentOrigin||typeof E.parentOrigin!=="string")throw Error("WebSocket Interceptor: Invalid parentOrigin in ws-interception-config");
+(function(b){var d=Object.getOwnPropertyDescriptor(window,"WebSocket");if(!d||d.writable||d.configurable)d=Object.assign(function(e,h){try{let k=(new URL(e)).hostname;if(b.proxiedDomains.some(m=>k===m||k.endsWith(`.${m}`)))return new B(e,h,b.parentOrigin)}catch(k){throw window.parent.postMessage({type:"websocket_blocked",url:e,reason:"blocked_invalid_url"},b.parentOrigin),new DOMException(`WebSocket connection to '${e}' is not allowed in Canvas.`,"SecurityError");}window.parent.postMessage({type:"websocket_blocked",
+url:e,reason:"blocked_domain_not_allowlisted"},b.parentOrigin);throw new DOMException(`WebSocket connection to '${e}' is not allowed in Canvas.`,"SecurityError");},{CONNECTING:0,OPEN:1,CLOSING:2,CLOSED:3}),Object.defineProperty(window,"WebSocket",{value:d,writable:!1,configurable:!1})})({proxiedDomains:E.proxiedDomains||[],parentOrigin:E.parentOrigin});}).call(this);
+</script><script data-bard-client-injected="true">((function(modelInformation) {
+  const originalFetch = window.fetch;
+  // TODO: b/421908508 - Move these out of the script and match all generative AI model calls.
+  let googleLlmBaseApiUrls = [
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.textModelName + ':streamGenerateContent',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.textModelName + ':generateContent',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.imageModelName + ':predict',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.imageModelName + ':predictLongRunning',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.imageEditModelName + ':generateContent',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.imageTransformModelName + ':generateContent',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.videoModelName + ':predict',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.videoModelName + ':predictLongRunning',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.ttsModelName + ':generateContent',
+  ];
+  modelInformation.deprecatedTextModelNames.forEach((modelName) => {
+    googleLlmBaseApiUrls.push(
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':streamGenerateContent',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':generateContent',
+    );
+  });
+  modelInformation.deprecatedImageModelNames.forEach((modelName) => {
+    googleLlmBaseApiUrls.push(
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':predict',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':predictLongRunning',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':generateContent',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':streamGenerateContent',
+    );
+  });
+  modelInformation.deprecatedGenerateImageModelNames.forEach((modelName) => {
+    googleLlmBaseApiUrls.push(
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':generateContent',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':streamGenerateContent',
+    );
+  });
+  modelInformation.deprecatedImageTransformModelNames.forEach((modelName) => {
+    googleLlmBaseApiUrls.push(
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':generateContent',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':streamGenerateContent',
+    );
+  });
+
+  const pendingFetchResolvers = {};
+  let nextPromiseId = 0;
+
+  function handleStringInput(input, optionsArgument) {
+    const actualUrl = input;
+    const fetchCallArgs = [actualUrl, optionsArgument];
+    const effectiveOptions = optionsArgument || {};
+    const bodyForApiKeyCheck = effectiveOptions.body;
+    const bodyForPostMessage = effectiveOptions.body;
+    return { actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage };
+  }
+
+  function handleRequestInput(input, optionsArgument) {
+    const actualUrl = input.url;
+    const fetchCallArgs = [input, optionsArgument];
+    const effectiveOptions = { method: input.method, headers: new Headers(input.headers) };
+    let bodyForApiKeyCheck;
+    let bodyForPostMessage;
+
+    if (optionsArgument) {
+      if (optionsArgument.method) effectiveOptions.method = optionsArgument.method;
+      if (optionsArgument.headers) effectiveOptions.headers = new Headers(optionsArgument.headers);
+      if ('body' in optionsArgument) {
+        bodyForApiKeyCheck = optionsArgument.body;
+        bodyForPostMessage = optionsArgument.body;
+      } else {
+        bodyForApiKeyCheck = undefined;
+        bodyForPostMessage = input.body;
+      }
+    } else {
+      bodyForApiKeyCheck = undefined;
+      bodyForPostMessage = input.body;
+    }
+    return { actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage };
+  }
+
+  window.fetch = function(input, optionsArgument) {
+    let actualUrl;
+    let fetchCallArgs;
+    let effectiveOptions = {};
+    let bodyForApiKeyCheck;
+    let bodyForPostMessage;
+
+    if (typeof input === 'string') {
+      ({actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage} = handleStringInput(input, optionsArgument));
+    } else if (input instanceof Request) {
+      ({actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage} = handleRequestInput(input, optionsArgument));
+    } else {
+      return originalFetch.apply(window, [input, optionsArgument]);
+    }
+
+    effectiveOptions.method = effectiveOptions.method || 'GET';
+    if (!effectiveOptions.headers) {
+      effectiveOptions.headers = new Headers();
+    }
+
+
+    if (typeof actualUrl === 'string' && googleLlmBaseApiUrls.some((url) => actualUrl.startsWith(url))) {
+      let apiKeyIsNull = true;
+
+      const regex = new RegExp("models/([^:]+)");
+      const modelNameMatch = actualUrl.match(regex);
+      const modelName = modelNameMatch ? modelNameMatch[1] : 'unspecified';
+
+
+      try {
+        const urlObject = new URL(actualUrl);  // Use URL object for robust parsing
+        const apiKeyParam = urlObject.searchParams.get('key');
+        if (apiKeyParam) {
+          apiKeyIsNull = false;
+        }
+      } catch (e) {
+        // Continue checks even if URL parsing fails
+      }
+
+      if (apiKeyIsNull && effectiveOptions.headers) {
+        const h = new Headers(effectiveOptions.headers);
+        const apiKeyHeaderValue = h.get('X-API-Key') || h.get('x-api-key');
+        if (apiKeyHeaderValue) {
+          apiKeyIsNull = false;
+          return originalFetch.apply(window, fetchCallArgs);
+        }
+      }
+
+      if (apiKeyIsNull && effectiveOptions.method && ['POST', 'PUT', 'PATCH'].includes(effectiveOptions.method.toUpperCase()) && typeof bodyForApiKeyCheck === 'string') {
+        try {
+          const bodyData = JSON.parse(bodyForApiKeyCheck);
+          if (bodyData && bodyData.apiKey) {
+            apiKeyIsNull = false;
+            return originalFetch.apply(window, fetchCallArgs);
+          }
+        } catch (e) {
+          // Ignore JSON parsing errors
+        }
+      }
+
+      if(apiKeyIsNull) {
+        const promiseId = nextPromiseId++;
+        const promise = new Promise((resolve) => {
+          pendingFetchResolvers[promiseId] = (resolvedResponse) => {
+            delete pendingFetchResolvers[promiseId];
+            resolve(resolvedResponse);
+          };
+        });
+
+        let serializedBodyForPostMessage;
+        if (typeof bodyForPostMessage === 'string' || bodyForPostMessage == null) {
+            serializedBodyForPostMessage = bodyForPostMessage;
+        } else if (bodyForPostMessage instanceof ReadableStream) {
+            serializedBodyForPostMessage = null;
+        } else {
+            try {
+                serializedBodyForPostMessage = JSON.stringify(bodyForPostMessage);
+            } catch (e) {
+                serializedBodyForPostMessage = null;
+            }
+        }
+
+        const messageOptions = {
+            method: effectiveOptions.method,
+            headers: Object.fromEntries(new Headers(effectiveOptions.headers).entries()),
+            body: serializedBodyForPostMessage
+        };
+
+        window.parent.postMessage({
+          type: 'requestFetch',
+          url: actualUrl,
+          modelName: modelName,
+          options: messageOptions,
+          promiseId: promiseId,
+        }, '*');
+
+        return promise;
+      }
+      return originalFetch.apply(window, fetchCallArgs);
+    }
+    return originalFetch.apply(window, fetchCallArgs);
+  };
+
+  window.addEventListener('message', function(event) {
+    if (event.data && event.data.type === 'resolveFetch') {
+      const { promiseId, response } = event.data;
+      if (pendingFetchResolvers[promiseId]) {
+        try {
+          const reconstructedResponse = new Response(response.body, {
+            status: response.status,
+            statusText: response.statusText,
+            headers: new Headers(response.headers),
+          });
+          pendingFetchResolvers[promiseId](reconstructedResponse);
+        } catch (error) {
+          pendingFetchResolvers[promiseId](new Response(null, { status: 500, statusText: "Interceptor Response Reconstruction Error" }));
+        }
+      }
+    }
+  });
+
+}))({"textModelName":"gemini-3-flash-preview","imageModelName":"imagen-4.0-generate-001","imageEditModelName":"gemini-3.1-flash-image","imageTransformModelName":"gemini-3-pro-image","videoModelName":"veo-2.0-generate-001","ttsModelName":"gemini-2.5-flash-preview-tts","deprecatedTextModelNames":["gemini-2.0-flash","gemini-2.5-flash","gemini-2.5-flash-preview-04-17","gemini-2.5-flash-preview-05-20","gemini-2.5-flash-preview-09-2025"],"deprecatedImageModelNames":["imagen-3.0-generate-001","imagen-3.0-generate-002"],"deprecatedGenerateImageModelNames":["gemini-2.5-flash-image-preview","gemini-2.5-flash-image","gemini-3.1-flash-image-preview"],"deprecatedImageTransformModelNames":["gemini-3-pro-image-preview-11-2025"]})</script><script data-bard-client-injected="true">(function(){'use strict';function a(){window.parent.postMessage({type:"interaction"},"*")}window.addEventListener("click",a,{capture:!0,passive:!0});window.addEventListener("touchstart",a,{capture:!0,passive:!0});window.addEventListener("keydown",a,{capture:!0,passive:!0});}).call(this);
+</script><script data-bard-client-injected="true">(function() {
+  const originalConsoleLog = console.log;
+  const originalConsoleError = console.error;
+
+    /**
+   * Normalizes an error event or a promise rejection reason into a structured error object.
+   * @param {*} errorEventOrReason The error object or reason.
+   * @return {object} Structured error data { message, name, stack }.
+   */
+  function getErrorObject(errorEventOrReason) {
+    if (errorEventOrReason instanceof Error) {
+      return {
+        message: errorEventOrReason.message,
+        name: errorEventOrReason.name,
+        stack: errorEventOrReason.stack,
+      };
+    }
+    // Fallback for non-Error objects.
+    try {
+      return {
+        message: JSON.stringify(errorEventOrReason),
+        name: 'UnknownErrorType',
+        stack: null,
+      };
+    } catch (e) {
+      return {
+        message: String(errorEventOrReason),
+        name: 'UnknownErrorTypeNonStringifiable',
+        stack: null,
+      };
+    }
+  }
+
+  /**
+   * Converts an array of arguments (from log/error) into a single string.
+   * Handles Error objects specially to include their message and stack.
+   * @param {Array<*>} args - Arguments passed to console methods.
+   * @return {string} A string representation of the arguments.
+   */
+  function stringifyArgs(args) {
+    return args
+      .map((arg) => {
+        if (arg instanceof Error) {
+          const {message, stack} = arg;
+          return `Error: ${message}${stack ? ('\nStack: ' + stack) : ''}`;
+        }
+        if (typeof arg === 'object' && arg !== null) {
+          try {
+            return JSON.stringify(arg);
+          } catch (error) {
+            return '[Circular Object]';
+          }
+        } else {
+          return String(arg);
+        }
+      })
+      .join(' ');
+  }
+
+  console.log = function(...args) {
+    const logString = stringifyArgs(args);
+    window.parent.postMessage({ type: 'log', message: logString }, '*');
+    originalConsoleLog.apply(console, args);
+  };
+
+  console.error = function(...args) {
+    let errorData;
+    if (args.length > 0 && args[0] instanceof Error) {
+      const err = args[0];
+      // If the first arg is an Error, capture its details.
+      errorData = {
+        type: 'error',
+        source: 'CONSOLE_ERROR',
+        ...getErrorObject(err),
+        rawArgsString: stringifyArgs(args.slice(1)),
+        timestamp: new Date().toISOString(),
+      };
+    } else {
+      // If not an Error object, treat all args as a general error message.
+      errorData = {
+        type: 'error',
+        source: 'CONSOLE_ERROR',
+        message: stringifyArgs(args),
+        name: 'ConsoleLoggedError',
+        stack: null,
+        timestamp: new Date().toISOString(),
+      };
+    }
+    window.parent.postMessage(errorData, '*');
+    originalConsoleError.apply(console, args);
+  };
+
+  // Listen for global unhandled synchronous errors.
+  window.addEventListener('error', function(event) {
+    const errorDetails = event.error ? getErrorObject(event.error) : {
+      message: event.message,
+      name: 'GlobalError',
+      stack: null,
+      filename: event.filename,
+      lineno: event.lineno,
+      colno: event.colno,
+    };
+
+    window.parent.postMessage({
+      type: 'error',
+      source: 'global',
+      ...errorDetails,
+      message: errorDetails.message || event.message,
+      timestamp: new Date().toISOString(),
+    }, '*');
+  });
+
+  // Listen for unhandled promise rejections (asynchronous errors).
+  window.addEventListener('unhandledrejection', function(event) {
+    const errorDetails = getErrorObject(event.reason);
+
+    window.parent.postMessage({
+      type: 'error',
+      source: 'unhandledrejection',
+      ...errorDetails,
+      message: errorDetails.message || 'Unhandled Promise Rejection',
+      timestamp: new Date().toISOString(),
+    }, '*');
+  });
+
+})();</script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kavin Kumar L | Portfolio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js" crossorigin="anonymous"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                        },
+                        accent: {
+                            500: '#06b6d4',
+                            600: '#0891b2',
+                        },
+                        darkbg: '#0b0f17',
+                        darkcard: '#111827',
+                        darkborder: '#1f2937'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        ::selection {
+            background-color: #16a34a;
+            color: #ffffff;
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0b0f17;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1f2937;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #374151;
+        }
+
+        .glass-panel {
+            background: rgba(17, 24, 39, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .glow-effect {
+            box-shadow: 0 0 25px -5px rgba(34, 197, 94, 0.15);
+        }
+        
+        .glow-effect:hover {
+            box-shadow: 0 0 30px 2px rgba(34, 197, 94, 0.25);
+        }
+    </style>
+<style>*, ::before, ::after{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }/* ! tailwindcss v3.4.17 | MIT License | https://tailwindcss.com */*,::after,::before{box-sizing:border-box;border-width:0;border-style:solid;border-color:#e5e7eb}::after,::before{--tw-content:''}:host,html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;tab-size:4;font-family:Inter, sans-serif;font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:JetBrains Mono, monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0;padding:0}legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]:where(:not([hidden=until-found])){display:none}.pointer-events-none{pointer-events:none}.fixed{position:fixed}.absolute{position:absolute}.relative{position:relative}.inset-0{inset:0px}.-left-\[31px\]{left:-31px}.bottom-10{bottom:2.5rem}.bottom-6{bottom:1.5rem}.left-0{left:0px}.left-1\/2{left:50%}.right-0{right:0px}.right-10{right:2.5rem}.right-6{right:1.5rem}.top-0{top:0px}.top-1\.5{top:0.375rem}.top-1\/4{top:25%}.z-10{z-index:10}.z-50{z-index:50}.mx-auto{margin-left:auto;margin-right:auto}.mb-1{margin-bottom:0.25rem}.mb-1\.5{margin-bottom:0.375rem}.mb-10{margin-bottom:2.5rem}.mb-16{margin-bottom:4rem}.mb-2{margin-bottom:0.5rem}.mb-3{margin-bottom:0.75rem}.mb-4{margin-bottom:1rem}.mb-5{margin-bottom:1.25rem}.mb-6{margin-bottom:1.5rem}.mb-8{margin-bottom:2rem}.mt-2{margin-top:0.5rem}.mt-3{margin-top:0.75rem}.mt-4{margin-top:1rem}.mt-8{margin-top:2rem}.block{display:block}.flex{display:flex}.inline-flex{display:inline-flex}.grid{display:grid}.hidden{display:none}.h-1{height:0.25rem}.h-1\.5{height:0.375rem}.h-16{height:4rem}.h-2{height:0.5rem}.h-3\.5{height:0.875rem}.h-4{height:1rem}.h-5{height:1.25rem}.h-6{height:1.5rem}.h-80{height:20rem}.h-9{height:2.25rem}.h-96{height:24rem}.h-full{height:100%}.max-h-\[90vh\]{max-height:90vh}.min-h-screen{min-height:100vh}.w-12{width:3rem}.w-16{width:4rem}.w-2{width:0.5rem}.w-2\/5{width:40%}.w-3\.5{width:0.875rem}.w-3\/4{width:75%}.w-4{width:1rem}.w-5{width:1.25rem}.w-6{width:1.5rem}.w-80{width:20rem}.w-9{width:2.25rem}.w-96{width:24rem}.w-full{width:100%}.max-w-2xl{max-width:42rem}.max-w-3xl{max-width:48rem}.max-w-4xl{max-width:56rem}.max-w-7xl{max-width:80rem}.flex-1{flex:1 1 0%}.flex-shrink-0{flex-shrink:0}.flex-grow{flex-grow:1}.-translate-x-1\/2{--tw-translate-x:-50%;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.-translate-y-1\/2{--tw-translate-y:-50%;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.translate-y-20{--tw-translate-y:5rem;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.transform{transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}@keyframes ping{75%, 100%{transform:scale(2);opacity:0}}.animate-ping{animation:ping 1s cubic-bezier(0, 0, 0.2, 1) infinite}.resize-none{resize:none}.grid-cols-1{grid-template-columns:repeat(1, minmax(0, 1fr))}.grid-cols-2{grid-template-columns:repeat(2, minmax(0, 1fr))}.flex-col{flex-direction:column}.flex-wrap{flex-wrap:wrap}.items-start{align-items:flex-start}.items-center{align-items:center}.items-stretch{align-items:stretch}.justify-center{justify-content:center}.justify-between{justify-content:space-between}.gap-1{gap:0.25rem}.gap-1\.5{gap:0.375rem}.gap-12{gap:3rem}.gap-2{gap:0.5rem}.gap-3{gap:0.75rem}.gap-4{gap:1rem}.gap-6{gap:1.5rem}.gap-8{gap:2rem}.gap-x-4{column-gap:1rem}.gap-y-1{row-gap:0.25rem}.space-x-6 > :not([hidden]) ~ :not([hidden]){--tw-space-x-reverse:0;margin-right:calc(1.5rem * var(--tw-space-x-reverse));margin-left:calc(1.5rem * calc(1 - var(--tw-space-x-reverse)))}.space-x-8 > :not([hidden]) ~ :not([hidden]){--tw-space-x-reverse:0;margin-right:calc(2rem * var(--tw-space-x-reverse));margin-left:calc(2rem * calc(1 - var(--tw-space-x-reverse)))}.space-y-1 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.25rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.25rem * var(--tw-space-y-reverse))}.space-y-10 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(2.5rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(2.5rem * var(--tw-space-y-reverse))}.space-y-2 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.5rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.5rem * var(--tw-space-y-reverse))}.space-y-2\.5 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.625rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.625rem * var(--tw-space-y-reverse))}.space-y-3 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.75rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.75rem * var(--tw-space-y-reverse))}.space-y-4 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(1rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1rem * var(--tw-space-y-reverse))}.space-y-6 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(1.5rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1.5rem * var(--tw-space-y-reverse))}.overflow-hidden{overflow:hidden}.overflow-y-auto{overflow-y:auto}.scroll-smooth{scroll-behavior:smooth}.truncate{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.rounded{border-radius:0.25rem}.rounded-2xl{border-radius:1rem}.rounded-full{border-radius:9999px}.rounded-lg{border-radius:0.5rem}.rounded-md{border-radius:0.375rem}.rounded-xl{border-radius:0.75rem}.border{border-width:1px}.border-4{border-width:4px}.border-b{border-bottom-width:1px}.border-l-2{border-left-width:2px}.border-t{border-top-width:1px}.border-\[\#0b0f17\]{--tw-border-opacity:1;border-color:rgb(11 15 23 / var(--tw-border-opacity, 1))}.border-accent-500\/20{border-color:rgb(6 182 212 / 0.2)}.border-amber-500\/20{border-color:rgb(245 158 11 / 0.2)}.border-brand-500\/20{border-color:rgb(34 197 94 / 0.2)}.border-brand-500\/30{border-color:rgb(34 197 94 / 0.3)}.border-cyan-500\/20{border-color:rgb(6 182 212 / 0.2)}.border-emerald-500\/20{border-color:rgb(16 185 129 / 0.2)}.border-gray-700{--tw-border-opacity:1;border-color:rgb(55 65 81 / var(--tw-border-opacity, 1))}.border-gray-800{--tw-border-opacity:1;border-color:rgb(31 41 55 / var(--tw-border-opacity, 1))}.border-gray-800\/50{border-color:rgb(31 41 55 / 0.5)}.border-gray-800\/80{border-color:rgb(31 41 55 / 0.8)}.border-purple-500\/20{border-color:rgb(168 85 247 / 0.2)}.bg-\[\#0b0f17\]{--tw-bg-opacity:1;background-color:rgb(11 15 23 / var(--tw-bg-opacity, 1))}.bg-\[\#0b0f17\]\/95{background-color:rgb(11 15 23 / 0.95)}.bg-accent-500{--tw-bg-opacity:1;background-color:rgb(6 182 212 / var(--tw-bg-opacity, 1))}.bg-accent-500\/10{background-color:rgb(6 182 212 / 0.1)}.bg-amber-500\/10{background-color:rgb(245 158 11 / 0.1)}.bg-black\/80{background-color:rgb(0 0 0 / 0.8)}.bg-brand-500{--tw-bg-opacity:1;background-color:rgb(34 197 94 / var(--tw-bg-opacity, 1))}.bg-brand-500\/10{background-color:rgb(34 197 94 / 0.1)}.bg-brand-600{--tw-bg-opacity:1;background-color:rgb(22 163 74 / var(--tw-bg-opacity, 1))}.bg-cyan-500\/10{background-color:rgb(6 182 212 / 0.1)}.bg-emerald-500\/10{background-color:rgb(16 185 129 / 0.1)}.bg-gray-500{--tw-bg-opacity:1;background-color:rgb(107 114 128 / var(--tw-bg-opacity, 1))}.bg-gray-800{--tw-bg-opacity:1;background-color:rgb(31 41 55 / var(--tw-bg-opacity, 1))}.bg-gray-900{--tw-bg-opacity:1;background-color:rgb(17 24 39 / var(--tw-bg-opacity, 1))}.bg-gray-900\/60{background-color:rgb(17 24 39 / 0.6)}.bg-gray-900\/80{background-color:rgb(17 24 39 / 0.8)}.bg-gray-950{--tw-bg-opacity:1;background-color:rgb(3 7 18 / var(--tw-bg-opacity, 1))}.bg-gray-950\/40{background-color:rgb(3 7 18 / 0.4)}.bg-purple-500{--tw-bg-opacity:1;background-color:rgb(168 85 247 / var(--tw-bg-opacity, 1))}.bg-purple-500\/10{background-color:rgb(168 85 247 / 0.1)}.bg-transparent{background-color:transparent}.bg-gradient-to-r{background-image:linear-gradient(to right, var(--tw-gradient-stops))}.bg-gradient-to-tr{background-image:linear-gradient(to top right, var(--tw-gradient-stops))}.from-brand-500{--tw-gradient-from:#22c55e var(--tw-gradient-from-position);--tw-gradient-to:rgb(34 197 94 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.from-brand-600{--tw-gradient-from:#16a34a var(--tw-gradient-from-position);--tw-gradient-to:rgb(22 163 74 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.via-emerald-400{--tw-gradient-to:rgb(52 211 153 / 0)  var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), #34d399 var(--tw-gradient-via-position), var(--tw-gradient-to)}.to-accent-500{--tw-gradient-to:#06b6d4 var(--tw-gradient-to-position)}.to-accent-600{--tw-gradient-to:#0891b2 var(--tw-gradient-to-position)}.bg-clip-text{-webkit-background-clip:text;background-clip:text}.p-1\.5{padding:0.375rem}.p-2{padding:0.5rem}.p-2\.5{padding:0.625rem}.p-3{padding:0.75rem}.p-3\.5{padding:0.875rem}.p-4{padding:1rem}.p-6{padding:1.5rem}.p-8{padding:2rem}.px-2\.5{padding-left:0.625rem;padding-right:0.625rem}.px-3{padding-left:0.75rem;padding-right:0.75rem}.px-3\.5{padding-left:0.875rem;padding-right:0.875rem}.px-4{padding-left:1rem;padding-right:1rem}.px-6{padding-left:1.5rem;padding-right:1.5rem}.py-1{padding-top:0.25rem;padding-bottom:0.25rem}.py-1\.5{padding-top:0.375rem;padding-bottom:0.375rem}.py-2{padding-top:0.5rem;padding-bottom:0.5rem}.py-20{padding-top:5rem;padding-bottom:5rem}.py-3{padding-top:0.75rem;padding-bottom:0.75rem}.py-3\.5{padding-top:0.875rem;padding-bottom:0.875rem}.py-8{padding-top:2rem;padding-bottom:2rem}.pb-4{padding-bottom:1rem}.pb-6{padding-bottom:1.5rem}.pl-6{padding-left:1.5rem}.pt-0{padding-top:0px}.pt-16{padding-top:4rem}.pt-2{padding-top:0.5rem}.pt-3{padding-top:0.75rem}.pt-6{padding-top:1.5rem}.text-center{text-align:center}.text-right{text-align:right}.font-sans{font-family:Inter, sans-serif}.font-mono{font-family:JetBrains Mono, monospace}.text-2xl{font-size:1.5rem;line-height:2rem}.text-3xl{font-size:1.875rem;line-height:2.25rem}.text-4xl{font-size:2.25rem;line-height:2.5rem}.text-\[11px\]{font-size:11px}.text-base{font-size:1rem;line-height:1.5rem}.text-lg{font-size:1.125rem;line-height:1.75rem}.text-sm{font-size:0.875rem;line-height:1.25rem}.text-xl{font-size:1.25rem;line-height:1.75rem}.text-xs{font-size:0.75rem;line-height:1rem}.font-bold{font-weight:700}.font-extrabold{font-weight:800}.font-medium{font-weight:500}.font-normal{font-weight:400}.font-semibold{font-weight:600}.uppercase{text-transform:uppercase}.leading-relaxed{line-height:1.625}.leading-tight{line-height:1.25}.tracking-tight{letter-spacing:-0.025em}.tracking-wide{letter-spacing:0.025em}.tracking-wider{letter-spacing:0.05em}.tracking-widest{letter-spacing:0.1em}.text-slate-200{--tw-text-opacity:1;color:rgb(226 232 240 / var(--tw-text-opacity, 1))}.text-amber-400{--tw-text-opacity:1;color:rgb(251 191 36 / var(--tw-text-opacity, 1))}.text-amber-500{--tw-text-opacity:1;color:rgb(245 158 11 / var(--tw-text-opacity, 1))}.text-blue-400{--tw-text-opacity:1;color:rgb(96 165 250 / var(--tw-text-opacity, 1))}.text-brand-500{--tw-text-opacity:1;color:rgb(34 197 94 / var(--tw-text-opacity, 1))}.text-cyan-400{--tw-text-opacity:1;color:rgb(34 211 238 / var(--tw-text-opacity, 1))}.text-emerald-400{--tw-text-opacity:1;color:rgb(52 211 153 / var(--tw-text-opacity, 1))}.text-gray-200{--tw-text-opacity:1;color:rgb(229 231 235 / var(--tw-text-opacity, 1))}.text-gray-300{--tw-text-opacity:1;color:rgb(209 213 219 / var(--tw-text-opacity, 1))}.text-gray-400{--tw-text-opacity:1;color:rgb(156 163 175 / var(--tw-text-opacity, 1))}.text-gray-500{--tw-text-opacity:1;color:rgb(107 114 128 / var(--tw-text-opacity, 1))}.text-purple-400{--tw-text-opacity:1;color:rgb(192 132 252 / var(--tw-text-opacity, 1))}.text-sky-400{--tw-text-opacity:1;color:rgb(56 189 248 / var(--tw-text-opacity, 1))}.text-transparent{color:transparent}.text-white{--tw-text-opacity:1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.antialiased{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}.placeholder-gray-500::placeholder{--tw-placeholder-opacity:1;color:rgb(107 114 128 / var(--tw-placeholder-opacity, 1))}.opacity-0{opacity:0}.opacity-75{opacity:0.75}.shadow-2xl{--tw-shadow:0 25px 50px -12px rgb(0 0 0 / 0.25);--tw-shadow-colored:0 25px 50px -12px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-lg{--tw-shadow:0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 10px 15px -3px var(--tw-shadow-color), 0 4px 6px -4px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-md{--tw-shadow:0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 4px 6px -1px var(--tw-shadow-color), 0 2px 4px -2px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-sm{--tw-shadow:0 1px 2px 0 rgb(0 0 0 / 0.05);--tw-shadow-colored:0 1px 2px 0 var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-brand-600\/20{--tw-shadow-color:rgb(22 163 74 / 0.2);--tw-shadow:var(--tw-shadow-colored)}.blur-3xl{--tw-blur:blur(64px);filter:var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow)}.backdrop-blur-sm{--tw-backdrop-blur:blur(4px);-webkit-backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia)}.transition-all{transition-property:all;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.transition-colors{transition-property:color, background-color, border-color, fill, stroke, -webkit-text-decoration-color;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, -webkit-text-decoration-color;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.transition-transform{transition-property:transform;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.duration-300{transition-duration:300ms}.selection\:bg-brand-500 *::selection{--tw-bg-opacity:1;background-color:rgb(34 197 94 / var(--tw-bg-opacity, 1))}.selection\:text-white *::selection{--tw-text-opacity:1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.selection\:bg-brand-500::selection{--tw-bg-opacity:1;background-color:rgb(34 197 94 / var(--tw-bg-opacity, 1))}.selection\:text-white::selection{--tw-text-opacity:1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.hover\:-translate-y-0\.5:hover{--tw-translate-y:-0.125rem;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.hover\:border-brand-500\/40:hover{border-color:rgb(34 197 94 / 0.4)}.hover\:border-brand-500\/50:hover{border-color:rgb(34 197 94 / 0.5)}.hover\:border-gray-700:hover{--tw-border-opacity:1;border-color:rgb(55 65 81 / var(--tw-border-opacity, 1))}.hover\:bg-brand-500:hover{--tw-bg-opacity:1;background-color:rgb(34 197 94 / var(--tw-bg-opacity, 1))}.hover\:bg-brand-500\/20:hover{background-color:rgb(34 197 94 / 0.2)}.hover\:bg-gray-700:hover{--tw-bg-opacity:1;background-color:rgb(55 65 81 / var(--tw-bg-opacity, 1))}.hover\:bg-gray-800:hover{--tw-bg-opacity:1;background-color:rgb(31 41 55 / var(--tw-bg-opacity, 1))}.hover\:bg-gray-800\/80:hover{background-color:rgb(31 41 55 / 0.8)}.hover\:text-brand-500:hover{--tw-text-opacity:1;color:rgb(34 197 94 / var(--tw-text-opacity, 1))}.hover\:text-gray-300:hover{--tw-text-opacity:1;color:rgb(209 213 219 / var(--tw-text-opacity, 1))}.hover\:text-white:hover{--tw-text-opacity:1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.hover\:shadow-brand-500\/40:hover{--tw-shadow-color:rgb(34 197 94 / 0.4);--tw-shadow:var(--tw-shadow-colored)}.focus\:border-brand-500:focus{--tw-border-opacity:1;border-color:rgb(34 197 94 / var(--tw-border-opacity, 1))}.focus\:outline-none:focus{outline:2px solid transparent;outline-offset:2px}.group:hover .group-hover\:scale-105{--tw-scale-x:1.05;--tw-scale-y:1.05;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.group:hover .group-hover\:scale-125{--tw-scale-x:1.25;--tw-scale-y:1.25;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.group:hover .group-hover\:text-amber-400{--tw-text-opacity:1;color:rgb(251 191 36 / var(--tw-text-opacity, 1))}.group:hover .group-hover\:text-brand-500{--tw-text-opacity:1;color:rgb(34 197 94 / var(--tw-text-opacity, 1))}.group:hover .group-hover\:text-cyan-400{--tw-text-opacity:1;color:rgb(34 211 238 / var(--tw-text-opacity, 1))}@media (min-width: 640px){.sm\:-left-\[39px\]{left:-39px}.sm\:inline-flex{display:inline-flex}.sm\:grid-cols-2{grid-template-columns:repeat(2, minmax(0, 1fr))}.sm\:flex-row{flex-direction:row}.sm\:justify-start{justify-content:flex-start}.sm\:p-6{padding:1.5rem}.sm\:p-8{padding:2rem}.sm\:px-6{padding-left:1.5rem;padding-right:1.5rem}.sm\:pl-8{padding-left:2rem}.sm\:text-left{text-align:left}.sm\:text-4xl{font-size:2.25rem;line-height:2.5rem}.sm\:text-5xl{font-size:3rem;line-height:1}.sm\:text-lg{font-size:1.125rem;line-height:1.75rem}.sm\:text-sm{font-size:0.875rem;line-height:1.25rem}}@media (min-width: 768px){.md\:flex{display:flex}.md\:hidden{display:none}.md\:grid-cols-2{grid-template-columns:repeat(2, minmax(0, 1fr))}}@media (min-width: 1024px){.lg\:col-span-2{grid-column:span 2 / span 2}.lg\:mx-0{margin-left:0px;margin-right:0px}.lg\:inline-flex{display:inline-flex}.lg\:w-96{width:24rem}.lg\:grid-cols-2{grid-template-columns:repeat(2, minmax(0, 1fr))}.lg\:grid-cols-3{grid-template-columns:repeat(3, minmax(0, 1fr))}.lg\:flex-row{flex-direction:row}.lg\:justify-start{justify-content:flex-start}.lg\:px-8{padding-left:2rem;padding-right:2rem}.lg\:py-28{padding-top:7rem;padding-bottom:7rem}.lg\:text-left{text-align:left}.lg\:text-6xl{font-size:3.75rem;line-height:1}}</style></head>
+<body class="bg-[#0b0f17] text-slate-200 font-sans antialiased selection:bg-brand-500 selection:text-white min-h-screen flex flex-col">
+
+    <!-- Navigation Bar -->
+    <header class="fixed top-0 left-0 right-0 z-50 glass-panel border-b border-gray-800/80 transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <!-- Logo / Name -->
+            <a href="#hero" class="flex items-center gap-2 group">
+                <div class="w-9 h-9 rounded-lg bg-gradient-to-tr from-brand-600 to-accent-500 flex items-center justify-center font-bold text-white text-lg shadow-md group-hover:scale-105 transition-transform">
+                    K
+                </div>
+                <span class="font-bold text-lg text-white tracking-wide group-hover:text-brand-500 transition-colors">
+                    Kavin Kumar L<span class="text-brand-500">.</span>
+                </span>
+            </a>
+
+            <!-- Desktop Nav Links -->
+            <nav class="hidden md:flex items-center space-x-8 text-sm font-medium">
+                <a href="#about" class="hover:text-brand-500 transition-colors">About</a>
+                <a href="#skills" class="hover:text-brand-500 transition-colors">Skills</a>
+                <a href="#projects" class="hover:text-brand-500 transition-colors">Projects</a>
+                <a href="#experience" class="hover:text-brand-500 transition-colors">Experience</a>
+                <a href="#education" class="hover:text-brand-500 transition-colors">Education</a>
+                <a href="#contact" class="hover:text-brand-500 transition-colors">Contact</a>
+            </nav>
+
+            <!-- Quick Action CTA & Mobile Menu Toggle -->
+            <div class="flex items-center gap-3">
+                <button onclick="downloadPortfolioZip()" class="hidden sm:inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-lg bg-brand-500/10 hover:bg-brand-500/20 text-brand-400 border border-brand-500/30 transition-all shadow-sm" title="Export complete source code as ZIP file">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="download-cloud" aria-hidden="true" class="lucide lucide-download-cloud w-4 h-4"><path d="M12 13v8l-4-4"></path><path d="m12 21 4-4"></path><path d="M4.393 15.269A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.436 8.284"></path></svg>
+                    Export ZIP
+                </button>
+                <button onclick="openResumeModal()" class="hidden sm:inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-lg bg-gray-800 hover:bg-gray-700 text-white border border-gray-700 transition-all shadow-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="file-text" aria-hidden="true" class="lucide lucide-file-text w-4 h-4 text-brand-500"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"></path><path d="M14 2v5a1 1 0 0 0 1 1h5"></path><path d="M10 9H8"></path><path d="M16 13H8"></path><path d="M16 17H8"></path></svg>
+                    Resume
+                </button>
+                <a href="#contact" class="hidden lg:inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-lg bg-brand-600 hover:bg-brand-500 text-white transition-all shadow-md">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="mail" aria-hidden="true" class="lucide lucide-mail w-4 h-4"><path d="m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7"></path><rect x="2" y="4" width="20" height="16" rx="2"></rect></svg>
+                    Hire Me
+                </a>
+
+                <!-- Mobile menu button -->
+                <button id="mobile-menu-btn" onclick="toggleMobileMenu()" class="md:hidden p-2 rounded-lg bg-gray-800 text-gray-300 hover:text-white hover:bg-gray-700 focus:outline-none">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="menu" aria-hidden="true" id="menu-icon" class="lucide lucide-menu w-6 h-6"><path d="M4 5h16"></path><path d="M4 12h16"></path><path d="M4 19h16"></path></svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile Navigation Menu -->
+        <div id="mobile-menu" class="hidden md:hidden border-t border-gray-800 bg-[#0b0f17]/95 px-4 pt-3 pb-6 space-y-3">
+            <a href="#about" onclick="toggleMobileMenu()" class="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-gray-800">About</a>
+            <a href="#skills" onclick="toggleMobileMenu()" class="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-gray-800">Skills</a>
+            <a href="#projects" onclick="toggleMobileMenu()" class="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-gray-800">Projects</a>
+            <a href="#experience" onclick="toggleMobileMenu()" class="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-gray-800">Experience</a>
+            <a href="#education" onclick="toggleMobileMenu()" class="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-gray-800">Education</a>
+            <a href="#contact" onclick="toggleMobileMenu()" class="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-gray-800">Contact</a>
+            <div class="pt-2 flex flex-col gap-2">
+                <button onclick="toggleMobileMenu(); downloadPortfolioZip();" class="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-brand-500/10 hover:bg-brand-500/20 text-brand-400 border border-brand-500/30">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="download-cloud" aria-hidden="true" class="lucide lucide-download-cloud w-4 h-4"><path d="M12 13v8l-4-4"></path><path d="m12 21 4-4"></path><path d="M4.393 15.269A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.436 8.284"></path></svg> Export Source ZIP
+                </button>
+                <button onclick="toggleMobileMenu(); openResumeModal();" class="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-gray-800 hover:bg-gray-700 text-white border border-gray-700">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="file-text" aria-hidden="true" class="lucide lucide-file-text w-4 h-4 text-brand-500"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"></path><path d="M14 2v5a1 1 0 0 0 1 1h5"></path><path d="M10 9H8"></path><path d="M16 13H8"></path><path d="M16 17H8"></path></svg> Download / View Resume
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow pt-16">
+        <!-- Hero Section -->
+        <section id="hero" class="relative py-20 lg:py-28 overflow-hidden border-b border-gray-800/50">
+            <!-- Subtle background ambient light -->
+            <div class="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-brand-500/10 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="absolute bottom-10 right-10 w-80 h-80 bg-accent-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                <div class="flex flex-col lg:flex-row items-center justify-between gap-12">
+                    
+                    <!-- Left Hero Content -->
+                    <div class="flex-1 text-center lg:text-left">
+                        <!-- Status Badge -->
+                        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-brand-500/10 border border-brand-500/30 text-brand-500 text-xs font-mono font-medium mb-6">
+                            <span class="relative flex h-2 w-2">
+                              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-500 opacity-75"></span>
+                              <span class="relative inline-flex rounded-full h-2 w-2 bg-brand-500"></span>
+                            </span>
+                            Computer Science &amp; Engineering Student | Salem, Tamil Nadu
+                        </div>
+
+                        <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white mb-6 leading-tight">
+                            Hi, I'm <span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-500 via-emerald-400 to-accent-500">Kavin Kumar L</span>
+                        </h1>
+
+                        <p class="text-base sm:text-lg text-gray-400 max-w-2xl mb-8 leading-relaxed mx-auto lg:mx-0">
+                            Self-driven Computer Science and Engineering student with a passion for software development, algorithmic thinking, and real-world problem solving. Eager to apply technical skills, adaptability, and a growth mindset to build impactful software products.
+                        </p>
+
+                        <!-- Primary Action Buttons -->
+                        <div class="flex flex-wrap items-center justify-center lg:justify-start gap-4 mb-10">
+                            <a href="#projects" class="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-semibold text-sm transition-all shadow-lg shadow-brand-600/20 hover:shadow-brand-500/40 transform hover:-translate-y-0.5">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="layout-grid" aria-hidden="true" class="lucide lucide-layout-grid w-4 h-4"><rect width="7" height="7" x="3" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="14" rx="1"></rect><rect width="7" height="7" x="3" y="14" rx="1"></rect></svg>
+                                View My Work
+                            </a>
+                            <button onclick="openResumeModal()" class="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-gray-800 hover:bg-gray-700 text-white font-semibold text-sm border border-gray-700 transition-all shadow-md transform hover:-translate-y-0.5">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="download" aria-hidden="true" class="lucide lucide-download w-4 h-4 text-brand-500"><path d="M12 15V3"></path><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="m7 10 5 5 5-5"></path></svg>
+                                Download Resume
+                            </button>
+                            <a href="#contact" class="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-transparent hover:bg-gray-800/80 text-gray-300 hover:text-white font-semibold text-sm border border-gray-800 transition-all">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="send" aria-hidden="true" class="lucide lucide-send w-4 h-4"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"></path><path d="m21.854 2.147-10.94 10.939"></path></svg>
+                                Contact Me
+                            </a>
+                        </div>
+
+                        <!-- Professional Links & Badges -->
+                        <div class="pt-6 border-t border-gray-800/80 flex flex-wrap items-center justify-center lg:justify-start gap-4 text-xs text-gray-400">
+                            <span class="font-mono text-gray-500 uppercase tracking-wider">Connect:</span>
+                            <a href="https://github.com/KavinKumar73-coder" target="_blank" rel="noopener noreferrer" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-900/80 hover:bg-gray-800 border border-gray-800 hover:border-gray-700 text-gray-300 hover:text-white transition-all">
+                                <i data-lucide="github" class="w-4 h-4"></i> GitHub
+                            </a>
+                            <a href="https://www.linkedin.com/in/kavin-kumar-907481371" target="_blank" rel="noopener noreferrer" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-900/80 hover:bg-gray-800 border border-gray-800 hover:border-gray-700 text-gray-300 hover:text-white transition-all">
+                                <i data-lucide="linkedin" class="w-4 h-4 text-blue-400"></i> LinkedIn
+                            </a>
+                            <a href="https://leetcode.com/u/kavinleet07/" target="_blank" rel="noopener noreferrer" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-900/80 hover:bg-gray-800 border border-gray-800 hover:border-gray-700 text-gray-300 hover:text-white transition-all">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="code-2" aria-hidden="true" class="lucide lucide-code-2 w-4 h-4 text-amber-500"><path d="m18 16 4-4-4-4"></path><path d="m6 8-4 4 4 4"></path><path d="m14.5 4-5 16"></path></svg> LeetCode
+                            </a>
+                            <a href="https://www.kaggle.com/kavinkumar0007" target="_blank" rel="noopener noreferrer" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-900/80 hover:bg-gray-800 border border-gray-800 hover:border-gray-700 text-gray-300 hover:text-white transition-all">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="database" aria-hidden="true" class="lucide lucide-database w-4 h-4 text-cyan-400"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M3 5V19A9 3 0 0 0 21 19V5"></path><path d="M3 12A9 3 0 0 0 21 12"></path></svg> Kaggle
+                            </a>
+                            <a href="https://x.com/Kavinkumar45891" target="_blank" rel="noopener noreferrer" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-900/80 hover:bg-gray-800 border border-gray-800 hover:border-gray-700 text-gray-300 hover:text-white transition-all">
+                                <i data-lucide="twitter" class="w-4 h-4 text-sky-400"></i> X (Twitter)
+                            </a>
+                        </div>
+
+                    </div>
+
+                    <!-- Right Hero Visual Card -->
+                    <div class="w-full lg:w-96 flex-shrink-0">
+                        <div class="p-6 rounded-2xl glass-panel glow-effect relative border border-gray-800 space-y-6">
+                            
+                            <!-- Profile Header Mockup -->
+                            <div class="flex items-center gap-4">
+                                <div class="w-16 h-16 rounded-xl bg-gradient-to-tr from-brand-600 to-accent-600 flex items-center justify-center text-white text-2xl font-bold shadow-lg">
+                                    KL
+                                </div>
+                                <div>
+                                    <h3 class="text-lg font-bold text-white">Kavin Kumar L</h3>
+                                    <p class="text-xs text-brand-500 font-mono">B.E. Computer Science</p>
+                                    <p class="text-xs text-gray-400">GCE Salem | CGPA: 8.25</p>
+                                </div>
+                            </div>
+
+                            <hr class="border-gray-800">
+
+                            <!-- Direct Quick Stats -->
+                            <div class="grid grid-cols-2 gap-3 text-center">
+                                <div class="p-3 rounded-xl bg-gray-900/60 border border-gray-800/80">
+                                    <span class="block text-xl font-bold text-white">3+</span>
+                                    <span class="text-[11px] text-gray-400">Featured Projects</span>
+                                </div>
+                                <div class="p-3 rounded-xl bg-gray-900/60 border border-gray-800/80">
+                                    <span class="block text-xl font-bold text-brand-500">93.5%</span>
+                                    <span class="text-[11px] text-gray-400">HSC Academic Rank</span>
+                                </div>
+                            </div>
+
+                            <!-- Highlights List -->
+                            <div class="space-y-2.5 text-xs">
+                                <div class="flex items-center justify-between text-gray-300">
+                                    <span class="flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="award" aria-hidden="true" class="lucide lucide-award w-4 h-4 text-amber-400"><path d="m15.477 12.89 1.515 8.526a.5.5 0 0 1-.81.47l-3.58-2.687a1 1 0 0 0-1.197 0l-3.586 2.686a.5.5 0 0 1-.81-.469l1.514-8.526"></path><circle cx="12" cy="8" r="6"></circle></svg> Bargur Presentation</span>
+                                    <span class="font-semibold text-white">3rd Place</span>
+                                </div>
+                                <div class="flex items-center justify-between text-gray-300">
+                                    <span class="flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="globe" aria-hidden="true" class="lucide lucide-globe w-4 h-4 text-cyan-400"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"></path><path d="M2 12h20"></path></svg> FortyGuard Hackathon</span>
+                                    <span class="font-semibold text-white">Participant</span>
+                                </div>
+                                <div class="flex items-center justify-between text-gray-300">
+                                    <span class="flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="cpu" aria-hidden="true" class="lucide lucide-cpu w-4 h-4 text-brand-400"><path d="M12 20v2"></path><path d="M12 2v2"></path><path d="M17 20v2"></path><path d="M17 2v2"></path><path d="M2 12h2"></path><path d="M2 17h2"></path><path d="M2 7h2"></path><path d="M20 12h2"></path><path d="M20 17h2"></path><path d="M20 7h2"></path><path d="M7 20v2"></path><path d="M7 2v2"></path><rect x="4" y="4" width="16" height="16" rx="2"></rect><rect x="8" y="8" width="8" height="8" rx="1"></rect></svg> Qualcomm AI Hub</span>
+                                    <span class="font-semibold text-white">ONNX / Edge AI</span>
+                                </div>
+                            </div>
+
+                            <!-- Location Footer -->
+                            <div class="pt-2 text-center border-t border-gray-800/80">
+                                <span class="text-xs text-gray-400 flex items-center justify-center gap-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="map-pin" aria-hidden="true" class="lucide lucide-map-pin w-3.5 h-3.5 text-brand-500"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"></path><circle cx="12" cy="10" r="3"></circle></svg> Salem, Tamil Nadu, India
+                                </span>
+                            </div>
+
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- About Section -->
+        <section id="about" class="py-20 border-b border-gray-800/50 bg-gray-950/40">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                
+                <div class="text-center max-w-3xl mx-auto mb-16">
+                    <h2 class="text-xs font-mono uppercase tracking-widest text-brand-500 mb-2">Background &amp; Focus</h2>
+                    <p class="text-3xl font-bold text-white tracking-tight sm:text-4xl">About Me</p>
+                    <div class="w-12 h-1 bg-brand-500 mx-auto mt-4 rounded-full"></div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch">
+                    
+                    <!-- Main About Card -->
+                    <div class="lg:col-span-2 p-8 rounded-2xl glass-panel border border-gray-800 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center gap-3 mb-6">
+                                <div class="p-2.5 rounded-xl bg-brand-500/10 text-brand-500 border border-brand-500/20">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="user-check" aria-hidden="true" class="lucide lucide-user-check w-6 h-6"><path d="m16 11 2 2 4-4"></path><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg>
+                                </div>
+                                <h3 class="text-xl font-bold text-white">Engineering Mindset &amp; Problem Solving</h3>
+                            </div>
+
+                            <p class="text-gray-300 text-base leading-relaxed mb-6">
+                                I am an ambitious Computer Science &amp; Engineering student with a deep interest in software systems, algorithmic efficiency, and edge AI deployment. My work centers on building practical, high-impact solutions—ranging from browser-based forensic PDF analysis tools to IoT-enabled landslide prediction platforms and Snapdragon-optimized plant disease diagnosis apps.
+                            </p>
+
+                            <p class="text-gray-400 text-sm leading-relaxed mb-8">
+                                I thrive in environment that challenge my core technical skills, file automation abilities, and data manipulation expertise. I emphasize clean code practices, adaptability, and continuous learning through algorithmic challenges and open-source explorations.
+                            </p>
+                        </div>
+
+                        <!-- Core Interest Pillars -->
+                        <div>
+                            <h4 class="text-xs font-mono uppercase text-gray-400 tracking-wider mb-3">Primary Interests</h4>
+                            <div class="flex flex-wrap gap-2">
+                                <span class="px-3 py-1.5 rounded-lg bg-gray-900 text-xs font-medium text-brand-400 border border-brand-500/20 flex items-center gap-1.5">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="code" aria-hidden="true" class="lucide lucide-code w-3.5 h-3.5"><path d="m16 18 6-6-6-6"></path><path d="m8 6-6 6 6 6"></path></svg> Software Engineering
+                                </span>
+                                <span class="px-3 py-1.5 rounded-lg bg-gray-900 text-xs font-medium text-accent-400 border border-accent-500/20 flex items-center gap-1.5">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="binary" aria-hidden="true" class="lucide lucide-binary w-3.5 h-3.5"><rect x="14" y="14" width="4" height="6" rx="2"></rect><rect x="6" y="4" width="4" height="6" rx="2"></rect><path d="M6 20h4"></path><path d="M14 10h4"></path><path d="M6 14h2v6"></path><path d="M14 4h2v6"></path></svg> DSA &amp; Problem Solving
+                                </span>
+                                <span class="px-3 py-1.5 rounded-lg bg-gray-900 text-xs font-medium text-emerald-400 border border-emerald-500/20 flex items-center gap-1.5">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="sparkles" aria-hidden="true" class="lucide lucide-sparkles w-3.5 h-3.5"><path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z"></path><path d="M20 2v4"></path><path d="M22 4h-4"></path><circle cx="4" cy="20" r="2"></circle></svg> AI &amp; Prompt Automation
+                                </span>
+                                <span class="px-3 py-1.5 rounded-lg bg-gray-900 text-xs font-medium text-purple-400 border border-purple-500/20 flex items-center gap-1.5">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="git-branch" aria-hidden="true" class="lucide lucide-git-branch w-3.5 h-3.5"><path d="M15 6a9 9 0 0 0-9 9V3"></path><circle cx="18" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle></svg> Open Source
+                                </span>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Languages & Soft Attributes Sidebar -->
+                    <div class="space-y-6 flex flex-col justify-between">
+                        
+                        <!-- Spoken Languages -->
+                        <div class="p-6 rounded-2xl glass-panel border border-gray-800">
+                            <div class="flex items-center gap-3 mb-4">
+                                <div class="p-2 rounded-lg bg-accent-500/10 text-accent-400">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="languages" aria-hidden="true" class="lucide lucide-languages w-5 h-5"><path d="m5 8 6 6"></path><path d="m4 14 6-6 2-3"></path><path d="M2 5h12"></path><path d="M7 2h1"></path><path d="m22 22-5-10-5 10"></path><path d="M14 18h6"></path></svg>
+                                </div>
+                                <h4 class="text-base font-bold text-white">Languages</h4>
+                            </div>
+
+                            <div class="space-y-3">
+                                <div>
+                                    <div class="flex justify-between text-xs mb-1">
+                                        <span class="text-gray-200 font-medium">Tamil</span>
+                                        <span class="text-brand-400 font-mono">Read / Write / Speak</span>
+                                    </div>
+                                    <div class="w-full h-1.5 bg-gray-800 rounded-full overflow-hidden">
+                                        <div class="w-full h-full bg-brand-500 rounded-full"></div>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <div class="flex justify-between text-xs mb-1">
+                                        <span class="text-gray-200 font-medium">English</span>
+                                        <span class="text-brand-400 font-mono">Read / Write / Speak</span>
+                                    </div>
+                                    <div class="w-full h-1.5 bg-gray-800 rounded-full overflow-hidden">
+                                        <div class="w-full h-full bg-brand-500 rounded-full"></div>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <div class="flex justify-between text-xs mb-1">
+                                        <span class="text-gray-200 font-medium">Kannada</span>
+                                        <span class="text-accent-400 font-mono">Speak</span>
+                                    </div>
+                                    <div class="w-full h-1.5 bg-gray-800 rounded-full overflow-hidden">
+                                        <div class="w-3/4 h-full bg-accent-500 rounded-full"></div>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <div class="flex justify-between text-xs mb-1">
+                                        <span class="text-gray-200 font-medium">Hindi</span>
+                                        <span class="text-gray-400 font-mono">Basic Conversation</span>
+                                    </div>
+                                    <div class="w-full h-1.5 bg-gray-800 rounded-full overflow-hidden">
+                                        <div class="w-2/5 h-full bg-gray-500 rounded-full"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Core Traits -->
+                        <div class="p-6 rounded-2xl glass-panel border border-gray-800">
+                            <div class="flex items-center gap-3 mb-3">
+                                <div class="p-2 rounded-lg bg-amber-500/10 text-amber-400">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="zap" aria-hidden="true" class="lucide lucide-zap w-5 h-5"><path d="M15.914 4a1.5 1.5 0 00-2.474-1.561l-9 9A1.5 1.5 0 005.5 14h4.002a.5.5 0 01.471.666L8.086 20a1.5 1.5 0 002.475 1.56l9-9A1.5 1.5 0 0018.5 10h-3.997a.5.5 0 01-.472-.667z"></path></svg>
+                                </div>
+                                <h4 class="text-base font-bold text-white">Core Strengths</h4>
+                            </div>
+                            <ul class="text-xs text-gray-300 space-y-2">
+                                <li class="flex items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="check-circle-2" aria-hidden="true" class="lucide lucide-check-circle-2 w-4 h-4 text-brand-500"><circle cx="12" cy="12" r="10"></circle><path d="m16 9-5.5 5.5L8 12"></path></svg> Adaptability &amp; Growth Mindset
+                                </li>
+                                <li class="flex items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="check-circle-2" aria-hidden="true" class="lucide lucide-check-circle-2 w-4 h-4 text-brand-500"><circle cx="12" cy="12" r="10"></circle><path d="m16 9-5.5 5.5L8 12"></path></svg> Analytical Data &amp; PDF Manipulation
+                                </li>
+                                <li class="flex items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="check-circle-2" aria-hidden="true" class="lucide lucide-check-circle-2 w-4 h-4 text-brand-500"><circle cx="12" cy="12" r="10"></circle><path d="m16 9-5.5 5.5L8 12"></path></svg> Edge AI Deployment &amp; Optimization
+                                </li>
+                                <li class="flex items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="check-circle-2" aria-hidden="true" class="lucide lucide-check-circle-2 w-4 h-4 text-brand-500"><circle cx="12" cy="12" r="10"></circle><path d="m16 9-5.5 5.5L8 12"></path></svg> IoT Hardware &amp; Cloud Sensor Integration
+                                </li>
+                            </ul>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Skills Section -->
+        <section id="skills" class="py-20 border-b border-gray-800/50">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                
+                <div class="text-center max-w-3xl mx-auto mb-16">
+                    <h2 class="text-xs font-mono uppercase tracking-widest text-brand-500 mb-2">Technical Proficiency</h2>
+                    <p class="text-3xl font-bold text-white tracking-tight sm:text-4xl">Skills &amp; Toolkit</p>
+                    <p class="text-gray-400 text-sm mt-3">Verified technical competencies directly applied in projects and problem solving.</p>
+                    <div class="w-12 h-1 bg-brand-500 mx-auto mt-4 rounded-full"></div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+                    <!-- Skill Category 1: Languages & DSA -->
+                    <div class="p-6 rounded-2xl glass-panel border border-gray-800 hover:border-gray-700 transition-all">
+                        <div class="flex items-center gap-3 mb-5">
+                            <div class="p-3 rounded-xl bg-brand-500/10 text-brand-500 border border-brand-500/20">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="terminal" aria-hidden="true" class="lucide lucide-terminal w-6 h-6"><path d="M12 19h8"></path><path d="m4 17 6-6-6-6"></path></svg>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-white text-lg">Languages &amp; DSA</h3>
+                                <p class="text-xs text-gray-400">Core Foundations</p>
+                            </div>
+                        </div>
+                        <div class="space-y-3">
+                            <div class="p-3 rounded-xl bg-gray-900/80 border border-gray-800/80">
+                                <div class="flex justify-between items-center mb-1">
+                                    <span class="text-sm font-semibold text-white">Python</span>
+                                    <span class="text-xs font-mono text-brand-400">Advanced</span>
+                                </div>
+                                <p class="text-xs text-gray-400">File handling, OS automation, pandas data manipulation</p>
+                            </div>
+                            <div class="p-3 rounded-xl bg-gray-900/80 border border-gray-800/80">
+                                <div class="flex justify-between items-center mb-1">
+                                    <span class="text-sm font-semibold text-white">C++</span>
+                                    <span class="text-xs font-mono text-brand-400">Core</span>
+                                </div>
+                                <p class="text-xs text-gray-400">Object-oriented concepts, algorithm design</p>
+                            </div>
+                            <div class="p-3 rounded-xl bg-gray-900/80 border border-gray-800/80">
+                                <div class="flex justify-between items-center mb-1">
+                                    <span class="text-sm font-semibold text-white">Data Structures &amp; Algo</span>
+                                    <span class="text-xs font-mono text-brand-400">Problem Solving</span>
+                                </div>
+                                <p class="text-xs text-gray-400">Arrays, Strings, Hashing, Loops &amp; Algorithmic Thinking</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Skill Category 2: Web & Database -->
+                    <div class="p-6 rounded-2xl glass-panel border border-gray-800 hover:border-gray-700 transition-all">
+                        <div class="flex items-center gap-3 mb-5">
+                            <div class="p-3 rounded-xl bg-accent-500/10 text-accent-400 border border-accent-500/20">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="globe" aria-hidden="true" class="lucide lucide-globe w-6 h-6"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"></path><path d="M2 12h20"></path></svg>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-white text-lg">Web &amp; Databases</h3>
+                                <p class="text-xs text-gray-400">Frontend &amp; Data Storage</p>
+                            </div>
+                        </div>
+                        <div class="space-y-3">
+                            <div class="p-3 rounded-xl bg-gray-900/80 border border-gray-800/80">
+                                <div class="flex justify-between items-center mb-1">
+                                    <span class="text-sm font-semibold text-white">Web Stack</span>
+                                    <span class="text-xs font-mono text-accent-400">HTML, CSS, JS</span>
+                                </div>
+                                <p class="text-xs text-gray-400">Responsive design, browser PDF analysis UI</p>
+                            </div>
+                            <div class="p-3 rounded-xl bg-gray-900/80 border border-gray-800/80">
+                                <div class="flex justify-between items-center mb-1">
+                                    <span class="text-sm font-semibold text-white">Streamlit</span>
+                                    <span class="text-xs font-mono text-accent-400">Python Web Apps</span>
+                                </div>
+                                <p class="text-xs text-gray-400">Rapid ML &amp; data app prototyping</p>
+                            </div>
+                            <div class="p-3 rounded-xl bg-gray-900/80 border border-gray-800/80">
+                                <div class="flex justify-between items-center mb-1">
+                                    <span class="text-sm font-semibold text-white">Databases</span>
+                                    <span class="text-xs font-mono text-accent-400">SQL, SQLite, MongoDB</span>
+                                </div>
+                                <p class="text-xs text-gray-400">Relational &amp; NoSQL database operations</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Skill Category 3: AI, ML & Edge Computing -->
+                    <div class="p-6 rounded-2xl glass-panel border border-gray-800 hover:border-gray-700 transition-all">
+                        <div class="flex items-center gap-3 mb-5">
+                            <div class="p-3 rounded-xl bg-purple-500/10 text-purple-400 border border-purple-500/20">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="cpu" aria-hidden="true" class="lucide lucide-cpu w-6 h-6"><path d="M12 20v2"></path><path d="M12 2v2"></path><path d="M17 20v2"></path><path d="M17 2v2"></path><path d="M2 12h2"></path><path d="M2 17h2"></path><path d="M2 7h2"></path><path d="M20 12h2"></path><path d="M20 17h2"></path><path d="M20 7h2"></path><path d="M7 20v2"></path><path d="M7 2v2"></path><rect x="4" y="4" width="16" height="16" rx="2"></rect><rect x="8" y="8" width="8" height="8" rx="1"></rect></svg>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-white text-lg">AI, ML &amp; Edge AI</h3>
+                                <p class="text-xs text-gray-400">Intelligent Systems</p>
+                            </div>
+                        </div>
+                        <div class="space-y-3">
+                            <div class="p-3 rounded-xl bg-gray-900/80 border border-gray-800/80">
+                                <div class="flex justify-between items-center mb-1">
+                                    <span class="text-sm font-semibold text-white">Qualcomm AI Hub &amp; ONNX</span>
+                                    <span class="text-xs font-mono text-purple-400">Edge Hardware</span>
+                                </div>
+                                <p class="text-xs text-gray-400">Snapdragon optimization &amp; model runtime</p>
+                            </div>
+                            <div class="p-3 rounded-xl bg-gray-900/80 border border-gray-800/80">
+                                <div class="flex justify-between items-center mb-1">
+                                    <span class="text-sm font-semibold text-white">LLM Tools</span>
+                                    <span class="text-xs font-mono text-purple-400">Ollama &amp; LlamaIndex</span>
+                                </div>
+                                <p class="text-xs text-gray-400">Local model hosting &amp; prompt workflows</p>
+                            </div>
+                            <div class="p-3 rounded-xl bg-gray-900/80 border border-gray-800/80">
+                                <div class="flex justify-between items-center mb-1">
+                                    <span class="text-sm font-semibold text-white">Data Analysis</span>
+                                    <span class="text-xs font-mono text-purple-400">Pandas &amp; PyTorch</span>
+                                </div>
+                                <p class="text-xs text-gray-400">Machine learning workflows &amp; Kaggle analysis</p>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Tools & Developer Utilities Bar -->
+                <div class="mt-8 p-6 rounded-2xl glass-panel border border-gray-800 flex flex-wrap items-center justify-between gap-6">
+                    <div class="flex items-center gap-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="wrench" aria-hidden="true" class="lucide lucide-wrench w-5 h-5 text-brand-500"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.106-3.105c.32-.322.863-.22.983.218a6 6 0 0 1-8.259 7.057l-7.91 7.91a1 1 0 0 1-2.999-3l7.91-7.91a6 6 0 0 1 7.057-8.259c.438.12.54.662.219.984z"></path></svg>
+                        <span class="text-sm font-bold text-white">Tools &amp; Utilities:</span>
+                    </div>
+                    <div class="flex flex-wrap gap-3 text-xs font-mono">
+                        <span class="px-3 py-1.5 rounded-lg bg-gray-900 border border-gray-800 text-gray-300">Git</span>
+                        <span class="px-3 py-1.5 rounded-lg bg-gray-900 border border-gray-800 text-gray-300">GitHub</span>
+                        <span class="px-3 py-1.5 rounded-lg bg-gray-900 border border-gray-800 text-gray-300">VS Code</span>
+                        <span class="px-3 py-1.5 rounded-lg bg-gray-900 border border-gray-800 text-gray-300">Jupyter Notebook</span>
+                        <span class="px-3 py-1.5 rounded-lg bg-gray-900 border border-gray-800 text-gray-300">LeetCode</span>
+                        <span class="px-3 py-1.5 rounded-lg bg-gray-900 border border-gray-800 text-gray-300">Kaggle</span>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Projects Section -->
+        <section id="projects" class="py-20 border-b border-gray-800/50 bg-gray-950/40">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                
+                <div class="text-center max-w-3xl mx-auto mb-16">
+                    <h2 class="text-xs font-mono uppercase tracking-widest text-brand-500 mb-2">Practical Implementations</h2>
+                    <p class="text-3xl font-bold text-white tracking-tight sm:text-4xl">Featured Projects</p>
+                    <p class="text-gray-400 text-sm mt-3">Innovative applications built focusing on AI on edge devices, security analysis, and IoT sensor platforms.</p>
+                    <div class="w-12 h-1 bg-brand-500 mx-auto mt-4 rounded-full"></div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+                    <!-- Project Card 1: AgriLens AI -->
+                    <div class="rounded-2xl glass-panel border border-gray-800 hover:border-brand-500/50 transition-all duration-300 flex flex-col justify-between overflow-hidden group">
+                        <div class="p-6">
+                            <div class="flex justify-between items-start mb-4">
+                                <span class="px-3 py-1 rounded-full text-[11px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                    AI &amp; Edge Device
+                                </span>
+                                <div class="p-2 rounded-lg bg-gray-900 text-brand-500">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="leaf" aria-hidden="true" class="lucide lucide-leaf w-5 h-5"><path d="M11 20a10 10 0 0010-10 25.9 25.9 0 00-1.04-7.281 1 1 0 00-1.755-.325C15.833 5.5 13 5.5 9.8 6.1A7 7 0 0011 20"></path><path d="M2 21a5 5 0 012.911-4.544C7.613 15.212 8.351 15.24 11 13"></path></svg>
+                                </div>
+                            </div>
+
+                            <h3 class="text-xl font-bold text-white group-hover:text-brand-400 transition-colors mb-3">
+                                AgriLens AI
+                            </h3>
+
+                            <p class="text-gray-300 text-sm leading-relaxed mb-6">
+                                An offline plant-disease diagnosis application optimized specifically for Snapdragon devices. Delivers local disease identification, severity insights, and practical treatment guidance in English and Tamil.
+                            </p>
+
+                            <div class="space-y-2 mb-6 text-xs text-gray-400">
+                                <div class="flex items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="check" aria-hidden="true" class="lucide lucide-check w-3.5 h-3.5 text-brand-500"><path d="M20 6 9 17l-5-5"></path></svg> Offline edge inference on Snapdragon
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="check" aria-hidden="true" class="lucide lucide-check w-3.5 h-3.5 text-brand-500"><path d="M20 6 9 17l-5-5"></path></svg> Bilingual support (English &amp; Tamil)
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="check" aria-hidden="true" class="lucide lucide-check w-3.5 h-3.5 text-brand-500"><path d="M20 6 9 17l-5-5"></path></svg> Disease severity insights &amp; guidance
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="p-6 pt-0">
+                            <div class="flex flex-wrap gap-1.5 mb-4 font-mono text-[11px]">
+                                <span class="px-2.5 py-1 rounded-md bg-gray-900 text-gray-300 border border-gray-800">Python</span>
+                                <span class="px-2.5 py-1 rounded-md bg-gray-900 text-gray-300 border border-gray-800">PyTorch</span>
+                                <span class="px-2.5 py-1 rounded-md bg-gray-900 text-gray-300 border border-gray-800">ONNX</span>
+                                <span class="px-2.5 py-1 rounded-md bg-gray-900 text-gray-300 border border-gray-800">Qualcomm AI Hub</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Project Card 2: VeriDocs -->
+                    <div class="rounded-2xl glass-panel border border-gray-800 hover:border-brand-500/50 transition-all duration-300 flex flex-col justify-between overflow-hidden group">
+                        <div class="p-6">
+                            <div class="flex justify-between items-start mb-4">
+                                <span class="px-3 py-1 rounded-full text-[11px] font-mono bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                                    3rd Place Award Winner
+                                </span>
+                                <div class="p-2 rounded-lg bg-gray-900 text-amber-400">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="file-check-2" aria-hidden="true" class="lucide lucide-file-check-2 w-5 h-5"><path d="M10.5 22H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.706.706l3.588 3.588A2.4 2.4 0 0 1 20 8v6"></path><path d="M14 2v5a1 1 0 0 0 1 1h5"></path><path d="m14 20 2 2 4-4"></path></svg>
+                                </div>
+                            </div>
+
+                            <h3 class="text-xl font-bold text-white group-hover:text-amber-400 transition-colors mb-3">
+                                VeriDocs
+                            </h3>
+
+                            <p class="text-gray-300 text-sm leading-relaxed mb-6">
+                                Browser-based tool that analyzes PDF files for structural metadata, revision histories, font consistencies, embedded images, and manipulation indicators.
+                            </p>
+
+                            <div class="space-y-2 mb-6 text-xs text-gray-400">
+                                <div class="flex items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="check" aria-hidden="true" class="lucide lucide-check w-3.5 h-3.5 text-amber-400"><path d="M20 6 9 17l-5-5"></path></svg> Explainable 0-100 heuristic risk score
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="check" aria-hidden="true" class="lucide lucide-check w-3.5 h-3.5 text-amber-400"><path d="M20 6 9 17l-5-5"></path></svg> Browser-side document inspection
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="check" aria-hidden="true" class="lucide lucide-check w-3.5 h-3.5 text-amber-400"><path d="M20 6 9 17l-5-5"></path></svg> Detects font &amp; metadata alterations
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="p-6 pt-0">
+                            <div class="flex flex-wrap gap-1.5 mb-4 font-mono text-[11px]">
+                                <span class="px-2.5 py-1 rounded-md bg-gray-900 text-gray-300 border border-gray-800">HTML</span>
+                                <span class="px-2.5 py-1 rounded-md bg-gray-900 text-gray-300 border border-gray-800">CSS</span>
+                                <span class="px-2.5 py-1 rounded-md bg-gray-900 text-gray-300 border border-gray-800">JavaScript</span>
+                                <span class="px-2.5 py-1 rounded-md bg-gray-900 text-gray-300 border border-gray-800">PDF Analysis</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Project Card 3: Landslide Risk Monitoring -->
+                    <div class="rounded-2xl glass-panel border border-gray-800 hover:border-brand-500/50 transition-all duration-300 flex flex-col justify-between overflow-hidden group">
+                        <div class="p-6">
+                            <div class="flex justify-between items-start mb-4">
+                                <span class="px-3 py-1 rounded-full text-[11px] font-mono bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+                                    IoT &amp; AI Sensor System
+                                </span>
+                                <div class="p-2 rounded-lg bg-gray-900 text-cyan-400">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="activity" aria-hidden="true" class="lucide lucide-activity w-5 h-5"><path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"></path></svg>
+                                </div>
+                            </div>
+
+                            <h3 class="text-xl font-bold text-white group-hover:text-cyan-400 transition-colors mb-3">
+                                Landslide Risk Monitoring &amp; Prediction
+                            </h3>
+
+                            <p class="text-gray-300 text-sm leading-relaxed mb-6">
+                                An IoT-based system monitoring environmental and ground conditions associated with landslide hazards. Integrates sensor telemetry, cloud data transmission, AI risk forecasting, and a real-time dashboard with 3D modeling.
+                            </p>
+
+                            <div class="space-y-2 mb-6 text-xs text-gray-400">
+                                <div class="flex items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="check" aria-hidden="true" class="lucide lucide-check w-3.5 h-3.5 text-cyan-400"><path d="M20 6 9 17l-5-5"></path></svg> Real-time ESP32 sensor telemetry
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="check" aria-hidden="true" class="lucide lucide-check w-3.5 h-3.5 text-cyan-400"><path d="M20 6 9 17l-5-5"></path></svg> AI-based ground risk analysis
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="check" aria-hidden="true" class="lucide lucide-check w-3.5 h-3.5 text-cyan-400"><path d="M20 6 9 17l-5-5"></path></svg> Interactive 3D visualization dashboard
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="p-6 pt-0">
+                            <div class="flex flex-wrap gap-1.5 mb-4 font-mono text-[11px]">
+                                <span class="px-2.5 py-1 rounded-md bg-gray-900 text-gray-300 border border-gray-800">ESP32</span>
+                                <span class="px-2.5 py-1 rounded-md bg-gray-900 text-gray-300 border border-gray-800">IoT Sensors</span>
+                                <span class="px-2.5 py-1 rounded-md bg-gray-900 text-gray-300 border border-gray-800">AI Cloud</span>
+                                <span class="px-2.5 py-1 rounded-md bg-gray-900 text-gray-300 border border-gray-800">3D Dashboard</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Experience & Achievements Section -->
+        <section id="experience" class="py-20 border-b border-gray-800/50">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                
+                <div class="text-center max-w-3xl mx-auto mb-16">
+                    <h2 class="text-xs font-mono uppercase tracking-widest text-brand-500 mb-2">Milestones &amp; Competitions</h2>
+                    <p class="text-3xl font-bold text-white tracking-tight sm:text-4xl">Academic &amp; Hackathon Experience</p>
+                    <p class="text-gray-400 text-sm mt-3">Demonstrated competitive achievements and technical project execution.</p>
+                    <div class="w-12 h-1 bg-brand-500 mx-auto mt-4 rounded-full"></div>
+                </div>
+
+                <div class="max-w-4xl mx-auto relative border-l-2 border-gray-800 pl-6 sm:pl-8 space-y-10">
+
+                    <!-- Timeline Item 1 -->
+                    <div class="relative group">
+                        <div class="absolute -left-[31px] sm:-left-[39px] top-1.5 w-4 h-4 rounded-full bg-brand-500 border-4 border-[#0b0f17] group-hover:scale-125 transition-transform"></div>
+                        <div class="p-6 rounded-2xl glass-panel border border-gray-800">
+                            <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                                <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="trophy" aria-hidden="true" class="lucide lucide-trophy w-5 h-5 text-amber-400"><path d="M10 14.66V17a1 1 0 0 1-1 1 2 2 0 0 0-2 2v2"></path><path d="M14 14.66V17a1 1 0 0 0 1 1 2 2 0 0 1 2 2v2"></path><path d="M17.916 10H19.5A2.5 2.5 0 0 0 22 7.5V5a1 1 0 0 0-1-1h-3"></path><path d="M4 22h16"></path><path d="M6 9a6 6 0 0 0 12 0V3a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1z"></path><path d="M6.084 10H4.5A2.5 2.5 0 0 1 2 7.5V5a1 1 0 0 1 1-1h3"></path></svg>
+                                    3rd Place - Project Presentation (VeriDocs)
+                                </h3>
+                                <span class="px-3 py-1 rounded-md bg-amber-500/10 text-amber-400 font-mono text-xs border border-amber-500/20">
+                                    Award Winner
+                                </span>
+                            </div>
+                            <p class="text-xs text-brand-400 font-mono mb-3">Government College Of Engineering, Bargur</p>
+                            <p class="text-sm text-gray-300 leading-relaxed">
+                                Awarded 3rd place for presenting <span class="text-white font-semibold">VeriDocs</span>, an explainable PDF heuristic manipulation analysis tool that parses metadata, font anomalies, and structural revisions directly in browser runtime.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Timeline Item 2 -->
+                    <div class="relative group">
+                        <div class="absolute -left-[31px] sm:-left-[39px] top-1.5 w-4 h-4 rounded-full bg-accent-500 border-4 border-[#0b0f17] group-hover:scale-125 transition-transform"></div>
+                        <div class="p-6 rounded-2xl glass-panel border border-gray-800">
+                            <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                                <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="globe" aria-hidden="true" class="lucide lucide-globe w-5 h-5 text-accent-400"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"></path><path d="M2 12h20"></path></svg>
+                                    Participant - Global Online FortyGuard Hackathon
+                                </h3>
+                                <span class="px-3 py-1 rounded-md bg-accent-500/10 text-accent-400 font-mono text-xs border border-accent-500/20">
+                                    International Event
+                                </span>
+                            </div>
+                            <p class="text-xs text-accent-400 font-mono mb-3">Global Hackathon Competition</p>
+                            <p class="text-sm text-gray-300 leading-relaxed">
+                                Competed internationally in the FortyGuard hackathon, collaborating on environmental data analysis and computational problem solving using real-world data pipelines.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Timeline Item 3 -->
+                    <div class="relative group">
+                        <div class="absolute -left-[31px] sm:-left-[39px] top-1.5 w-4 h-4 rounded-full bg-purple-500 border-4 border-[#0b0f17] group-hover:scale-125 transition-transform"></div>
+                        <div class="p-6 rounded-2xl glass-panel border border-gray-800">
+                            <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                                <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="cpu" aria-hidden="true" class="lucide lucide-cpu w-5 h-5 text-purple-400"><path d="M12 20v2"></path><path d="M12 2v2"></path><path d="M17 20v2"></path><path d="M17 2v2"></path><path d="M2 12h2"></path><path d="M2 17h2"></path><path d="M2 7h2"></path><path d="M20 12h2"></path><path d="M20 17h2"></path><path d="M20 7h2"></path><path d="M7 20v2"></path><path d="M7 2v2"></path><rect x="4" y="4" width="16" height="16" rx="2"></rect><rect x="8" y="8" width="8" height="8" rx="1"></rect></svg>
+                                    Qualcomm AI Hub Edge Developer Project
+                                </h3>
+                                <span class="px-3 py-1 rounded-md bg-purple-500/10 text-purple-400 font-mono text-xs border border-purple-500/20">
+                                    Technical Project
+                                </span>
+                            </div>
+                            <p class="text-xs text-purple-400 font-mono mb-3">Snapdragon AI Platform Optimization</p>
+                            <p class="text-sm text-gray-300 leading-relaxed">
+                                Integrated PyTorch models into ONNX formats and deployed them targeting Qualcomm Snapdragon hardware for real-time offline plant disease identification (AgriLens AI).
+                            </p>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Education Section -->
+        <section id="education" class="py-20 border-b border-gray-800/50 bg-gray-950/40">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                
+                <div class="text-center max-w-3xl mx-auto mb-16">
+                    <h2 class="text-xs font-mono uppercase tracking-widest text-brand-500 mb-2">Academic Qualifications</h2>
+                    <p class="text-3xl font-bold text-white tracking-tight sm:text-4xl">Education</p>
+                    <div class="w-12 h-1 bg-brand-500 mx-auto mt-4 rounded-full"></div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                    <!-- Education Card 1: GCE Salem -->
+                    <div class="p-6 rounded-2xl glass-panel border border-gray-800 relative hover:border-brand-500/40 transition-all">
+                        <div class="flex items-start justify-between mb-4">
+                            <div>
+                                <span class="px-2.5 py-1 rounded bg-brand-500/10 text-brand-400 text-xs font-mono font-semibold">2026 - 2029</span>
+                                <h3 class="text-lg font-bold text-white mt-2">Bachelor of Computer Science And Engineering</h3>
+                                <p class="text-sm text-gray-400">Government College Of Engineering, Salem</p>
+                            </div>
+                            <div class="px-3 py-2 rounded-xl bg-gray-900 border border-gray-800 text-right">
+                                <span class="block text-xs text-gray-400 font-mono">CGPA</span>
+                                <span class="text-lg font-bold text-brand-400">8.25</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Education Card 2: GCE Bargur -->
+                    <div class="p-6 rounded-2xl glass-panel border border-gray-800 relative hover:border-brand-500/40 transition-all">
+                        <div class="flex items-start justify-between mb-4">
+                            <div>
+                                <span class="px-2.5 py-1 rounded bg-gray-800 text-gray-300 text-xs font-mono font-semibold">2025 - 2026</span>
+                                <h3 class="text-lg font-bold text-white mt-2">Bachelor of Computer Science And Engineering</h3>
+                                <p class="text-sm text-gray-400">Government College Of Engineering, Bargur, Krishnagiri</p>
+                            </div>
+                            <div class="p-2.5 rounded-xl bg-gray-900 text-brand-500">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="graduation-cap" aria-hidden="true" class="lucide lucide-graduation-cap w-6 h-6"><path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"></path><path d="M22 10v6"></path><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"></path></svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Education Card 3: SRV Boys HSC -->
+                    <div class="p-6 rounded-2xl glass-panel border border-gray-800 relative hover:border-brand-500/40 transition-all">
+                        <div class="flex items-start justify-between mb-4">
+                            <div>
+                                <span class="px-2.5 py-1 rounded bg-gray-800 text-gray-300 text-xs font-mono font-semibold">Passed 2025</span>
+                                <h3 class="text-lg font-bold text-white mt-2">Higher Secondary Certificate (HSC)</h3>
+                                <p class="text-sm text-gray-400">SRV Boys Higher Secondary School</p>
+                            </div>
+                            <div class="px-3 py-2 rounded-xl bg-gray-900 border border-gray-800 text-right">
+                                <span class="block text-xs text-gray-400 font-mono">Percentage</span>
+                                <span class="text-lg font-bold text-emerald-400">93.5%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Education Card 4: The Gugai Boys SSLC -->
+                    <div class="p-6 rounded-2xl glass-panel border border-gray-800 relative hover:border-brand-500/40 transition-all">
+                        <div class="flex items-start justify-between mb-4">
+                            <div>
+                                <span class="px-2.5 py-1 rounded bg-gray-800 text-gray-300 text-xs font-mono font-semibold">Passed 2023</span>
+                                <h3 class="text-lg font-bold text-white mt-2">SSLC (10th Standard)</h3>
+                                <p class="text-sm text-gray-400">The Gugai Boys Higher Secondary School</p>
+                            </div>
+                            <div class="px-3 py-2 rounded-xl bg-gray-900 border border-gray-800 text-right">
+                                <span class="block text-xs text-gray-400 font-mono">Percentage</span>
+                                <span class="text-lg font-bold text-cyan-400">93%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Contact Section -->
+        <section id="contact" class="py-20 border-b border-gray-800/50 relative">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                
+                <div class="text-center max-w-3xl mx-auto mb-16">
+                    <h2 class="text-xs font-mono uppercase tracking-widest text-brand-500 mb-2">Get In Touch</h2>
+                    <p class="text-3xl font-bold text-white tracking-tight sm:text-4xl">Let's Connect</p>
+                    <p class="text-gray-400 text-sm mt-3">Open for internships, projects, open-source collaborations, and tech opportunities.</p>
+                    <div class="w-12 h-1 bg-brand-500 mx-auto mt-4 rounded-full"></div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+                    
+                    <!-- Direct Contact Information -->
+                    <div class="space-y-6">
+                        <div class="p-6 rounded-2xl glass-panel border border-gray-800">
+                            <h3 class="text-lg font-bold text-white mb-6 flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="message-square" aria-hidden="true" class="lucide lucide-message-square w-5 h-5 text-brand-500"><path d="M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z"></path></svg>
+                                Contact Details
+                            </h3>
+
+                            <div class="space-y-4 text-sm">
+                                
+                                <!-- Phone -->
+                                <div class="flex items-center justify-between p-3.5 rounded-xl bg-gray-900/80 border border-gray-800">
+                                    <div class="flex items-center gap-3">
+                                        <div class="p-2.5 rounded-lg bg-brand-500/10 text-brand-500">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="phone" aria-hidden="true" class="lucide lucide-phone w-4 h-4"><path d="M13.832 16.568a1 1 0 0 0 1.213-.303l.355-.465A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.468.351a1 1 0 0 0-.292 1.233 14 14 0 0 0 6.392 6.384"></path></svg>
+                                        </div>
+                                        <div>
+                                            <span class="block text-xs text-gray-400">Phone / WhatsApp</span>
+                                            <a href="tel:+917339602973" class="font-mono text-white font-semibold hover:text-brand-400 transition-colors">+91 7339602973</a>
+                                        </div>
+                                    </div>
+                                    <button onclick="copyToClipboard('+917339602973', 'Phone number copied!')" class="p-2 rounded-lg bg-gray-800 text-gray-400 hover:text-white" title="Copy Phone">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="copy" aria-hidden="true" class="lucide lucide-copy w-4 h-4"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"></rect><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path></svg>
+                                    </button>
+                                </div>
+
+                                <!-- Email -->
+                                <div class="flex items-center justify-between p-3.5 rounded-xl bg-gray-900/80 border border-gray-800">
+                                    <div class="flex items-center gap-3 overflow-hidden">
+                                        <div class="p-2.5 rounded-lg bg-accent-500/10 text-accent-400 flex-shrink-0">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="mail" aria-hidden="true" class="lucide lucide-mail w-4 h-4"><path d="m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7"></path><rect x="2" y="4" width="20" height="16" rx="2"></rect></svg>
+                                        </div>
+                                        <div class="truncate">
+                                            <span class="block text-xs text-gray-400">Email Address</span>
+                                            <a href="mailto:kavinkumarkumar184@gmail.com" class="font-mono text-white font-semibold hover:text-accent-400 transition-colors truncate block">kavinkumarkumar184@gmail.com</a>
+                                        </div>
+                                    </div>
+                                    <button onclick="copyToClipboard('kavinkumarkumar184@gmail.com', 'Email address copied!')" class="p-2 rounded-lg bg-gray-800 text-gray-400 hover:text-white flex-shrink-0" title="Copy Email">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="copy" aria-hidden="true" class="lucide lucide-copy w-4 h-4"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"></rect><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path></svg>
+                                    </button>
+                                </div>
+
+                                <!-- Location -->
+                                <div class="flex items-center gap-3 p-3.5 rounded-xl bg-gray-900/80 border border-gray-800">
+                                    <div class="p-2.5 rounded-lg bg-purple-500/10 text-purple-400">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="map-pin" aria-hidden="true" class="lucide lucide-map-pin w-4 h-4"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                                    </div>
+                                    <div>
+                                        <span class="block text-xs text-gray-400">Location</span>
+                                        <span class="text-white font-semibold">Salem, Tamil Nadu, India</span>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <!-- Social Platforms Box -->
+                        <div class="p-6 rounded-2xl glass-panel border border-gray-800">
+                            <h4 class="text-xs font-mono uppercase text-gray-400 mb-4">Professional Platforms</h4>
+                            <div class="grid grid-cols-2 gap-3">
+                                <a href="https://github.com/KavinKumar73-coder" target="_blank" rel="noopener noreferrer" class="p-3 rounded-xl bg-gray-900 border border-gray-800 hover:border-brand-500/50 flex items-center gap-2 text-xs text-gray-300 hover:text-white transition-all">
+                                    <i data-lucide="github" class="w-4 h-4 text-white"></i> GitHub Profile
+                                </a>
+                                <a href="https://www.linkedin.com/in/kavin-kumar-907481371" target="_blank" rel="noopener noreferrer" class="p-3 rounded-xl bg-gray-900 border border-gray-800 hover:border-brand-500/50 flex items-center gap-2 text-xs text-gray-300 hover:text-white transition-all">
+                                    <i data-lucide="linkedin" class="w-4 h-4 text-blue-400"></i> LinkedIn Network
+                                </a>
+                                <a href="https://leetcode.com/u/kavinleet07/" target="_blank" rel="noopener noreferrer" class="p-3 rounded-xl bg-gray-900 border border-gray-800 hover:border-brand-500/50 flex items-center gap-2 text-xs text-gray-300 hover:text-white transition-all">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="code-2" aria-hidden="true" class="lucide lucide-code-2 w-4 h-4 text-amber-500"><path d="m18 16 4-4-4-4"></path><path d="m6 8-4 4 4 4"></path><path d="m14.5 4-5 16"></path></svg> LeetCode Profile
+                                </a>
+                                <a href="https://www.kaggle.com/kavinkumar0007" target="_blank" rel="noopener noreferrer" class="p-3 rounded-xl bg-gray-900 border border-gray-800 hover:border-brand-500/50 flex items-center gap-2 text-xs text-gray-300 hover:text-white transition-all">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="database" aria-hidden="true" class="lucide lucide-database w-4 h-4 text-cyan-400"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M3 5V19A9 3 0 0 0 21 19V5"></path><path d="M3 12A9 3 0 0 0 21 12"></path></svg> Kaggle Portfolio
+                                </a>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Interactive Message Form -->
+                    <div class="p-8 rounded-2xl glass-panel border border-gray-800">
+                        <h3 class="text-xl font-bold text-white mb-6">Send Me a Message</h3>
+                        <form id="contact-form" onsubmit="handleFormSubmit(event)" class="space-y-4">
+                            <div>
+                                <label for="name" class="block text-xs font-mono text-gray-400 mb-1.5">Your Name</label>
+                                <input type="text" id="name" required="" placeholder="John Doe" class="w-full px-4 py-3 rounded-xl bg-gray-900 border border-gray-800 text-white placeholder-gray-500 text-sm focus:outline-none focus:border-brand-500 transition-colors">
+                            </div>
+
+                            <div>
+                                <label for="email" class="block text-xs font-mono text-gray-400 mb-1.5">Your Email</label>
+                                <input type="email" id="email" required="" placeholder="john@example.com" class="w-full px-4 py-3 rounded-xl bg-gray-900 border border-gray-800 text-white placeholder-gray-500 text-sm focus:outline-none focus:border-brand-500 transition-colors">
+                            </div>
+
+                            <div>
+                                <label for="subject" class="block text-xs font-mono text-gray-400 mb-1.5">Subject</label>
+                                <input type="text" id="subject" required="" placeholder="Project / Internship Query" class="w-full px-4 py-3 rounded-xl bg-gray-900 border border-gray-800 text-white placeholder-gray-500 text-sm focus:outline-none focus:border-brand-500 transition-colors">
+                            </div>
+
+                            <div>
+                                <label for="message" class="block text-xs font-mono text-gray-400 mb-1.5">Message</label>
+                                <textarea id="message" rows="4" required="" placeholder="Write your message here..." class="w-full px-4 py-3 rounded-xl bg-gray-900 border border-gray-800 text-white placeholder-gray-500 text-sm focus:outline-none focus:border-brand-500 transition-colors resize-none"></textarea>
+                            </div>
+
+                            <button type="submit" class="w-full py-3.5 px-6 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-semibold text-sm transition-all shadow-lg shadow-brand-600/20 flex items-center justify-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="send" aria-hidden="true" class="lucide lucide-send w-4 h-4"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"></path><path d="m21.854 2.147-10.94 10.939"></path></svg>
+                                Send Message
+                            </button>
+                        </form>
+                    </div>
+
+                </div>
+
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-950 border-t border-gray-800/80 py-8 text-xs text-gray-500">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p>© 2026 Kavin Kumar L. Built strictly based on verified credentials.</p>
+            <div class="flex items-center space-x-6">
+                <a href="https://github.com/KavinKumar73-coder" target="_blank" rel="noopener" class="hover:text-gray-300">GitHub</a>
+                <a href="https://www.linkedin.com/in/kavin-kumar-907481371" target="_blank" rel="noopener" class="hover:text-gray-300">LinkedIn</a>
+                <a href="https://leetcode.com/u/kavinleet07/" target="_blank" rel="noopener" class="hover:text-gray-300">LeetCode</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Toast Notification Container -->
+    <div id="toast" class="fixed bottom-6 right-6 z-50 transform transition-all duration-300 pointer-events-none translate-y-0 opacity-100">
+        <div class="px-4 py-3 rounded-xl bg-brand-600 text-white font-medium text-xs shadow-2xl flex items-center gap-2" id="toast-content">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="check-circle" aria-hidden="true" class="lucide lucide-check-circle w-4 h-4"><path d="M21.801 10A10 10 0 1 1 17 3.335"></path><path d="m9 11 3 3L22 4"></path></svg>
+            <span id="toast-message">Packaging source code into ZIP...</span>
+        </div>
+    </div>
+
+    <!-- Resume Modal -->
+    <div id="resume-modal" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-gray-900 border border-gray-800 rounded-2xl max-w-3xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+            
+            <!-- Modal Header -->
+            <div class="p-4 sm:p-6 border-b border-gray-800 flex items-center justify-between bg-gray-950">
+                <div class="flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="file-text" aria-hidden="true" class="lucide lucide-file-text w-5 h-5 text-brand-500"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"></path><path d="M14 2v5a1 1 0 0 0 1 1h5"></path><path d="M10 9H8"></path><path d="M16 13H8"></path><path d="M16 17H8"></path></svg>
+                    <h3 class="text-lg font-bold text-white">Kavin Kumar L - Curriculum Vitae</h3>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="window.print()" class="px-3 py-1.5 rounded-lg bg-brand-600 hover:bg-brand-500 text-white text-xs font-medium flex items-center gap-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="printer" aria-hidden="true" class="lucide lucide-printer w-3.5 h-3.5"><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><path d="M6 9V3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v6"></path><rect x="6" y="14" width="12" height="8" rx="1"></rect></svg> Print / Save PDF
+                    </button>
+                    <button onclick="closeResumeModal()" class="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="x" aria-hidden="true" class="lucide lucide-x w-5 h-5"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Modal Printable Resume Content -->
+            <div class="p-6 sm:p-8 overflow-y-auto space-y-6 text-xs sm:text-sm text-gray-300 font-sans" id="printable-resume">
+                
+                <!-- Header -->
+                <div class="border-b border-gray-800 pb-4 text-center sm:text-left">
+                    <h1 class="text-2xl font-bold text-white mb-1">KAVIN KUMAR L</h1>
+                    <p class="text-xs text-brand-400 font-mono mb-2">Computer Science &amp; Engineering Student</p>
+                    <p class="text-xs text-gray-400 flex flex-wrap justify-center sm:justify-start gap-x-4 gap-y-1">
+                        <span>📍 Salem, Tamil Nadu</span>
+                        <span>📞 +91 7339602973</span>
+                        <span>✉️ kavinkumarkumar184@gmail.com</span>
+                    </p>
+                </div>
+
+                <!-- Objective -->
+                <div>
+                    <h2 class="text-xs font-mono uppercase text-brand-400 font-bold tracking-wider mb-2">OBJECTIVE</h2>
+                    <p class="text-gray-300 leading-relaxed text-xs">
+                        Self-driven Computer Science and Engineering student with a passion for software development, algorithmic thinking, and real-world problem solving. Eager to apply technical skills, adaptability, and a growth mindset to build impactful software products.
+                    </p>
+                </div>
+
+                <!-- Technical Skills -->
+                <div>
+                    <h2 class="text-xs font-mono uppercase text-brand-400 font-bold tracking-wider mb-2">TECHNICAL SKILLS</h2>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                        <p><strong class="text-white">Languages:</strong> Python, C++</p>
+                        <p><strong class="text-white">DSA:</strong> Arrays, Strings, Hashing, Loops, Basic Problem Solving</p>
+                        <p><strong class="text-white">Python:</strong> File Handling, OS/File Automation, Pandas, Data Manipulation</p>
+                        <p><strong class="text-white">Web:</strong> HTML, CSS, JavaScript, Streamlit</p>
+                        <p><strong class="text-white">Database:</strong> SQL, SQLite, MongoDB</p>
+                        <p><strong class="text-white">Tools:</strong> Git, GitHub, VS Code, Jupyter Notebook, LeetCode</p>
+                        <p><strong class="text-white">Data/ML Exposure:</strong> Pandas, Kaggle, basic machine-learning workflow, ONNX</p>
+                        <p><strong class="text-white">AI/Edge:</strong> Ollama, LlamaIndex, Qualcomm AI Hub (project exposure)</p>
+                    </div>
+                </div>
+
+                <!-- Projects -->
+                <div>
+                    <h2 class="text-xs font-mono uppercase text-brand-400 font-bold tracking-wider mb-2">PROJECTS</h2>
+                    <div class="space-y-3 text-xs">
+                        <div>
+                            <p class="font-bold text-white">AgriLens AI | <span class="font-normal text-gray-400">Python, PyTorch, ONNX, Qualcomm AI Hub</span></p>
+                            <p class="text-gray-300">Developing an offline plant-disease diagnosis app optimized for Snapdragon devices. Provides disease identification, severity insights, and practical guidance in English and Tamil.</p>
+                        </div>
+                        <div>
+                            <p class="font-bold text-white">VeriDocs | <span class="font-normal text-gray-400">HTML, CSS, JavaScript, PDF Analysis</span></p>
+                            <p class="text-gray-300">Built a browser-based tool that analyzes PDFs for metadata, revisions, fonts, images, and other manipulation indicators. Generates an explainable 0-100 heuristic risk score rather than a definitive authenticity verdict.</p>
+                        </div>
+                        <div>
+                            <p class="font-bold text-white">Landslide Risk Monitoring &amp; Prediction System | <span class="font-normal text-gray-400">ESP32, IoT Sensors, AI, Cloud, Dashboard | 3D Model</span></p>
+                            <p class="text-gray-300">Developed an IoT-based system for monitoring environmental and ground conditions associated with landslide risk. Integrated sensor data collection, cloud transmission, AI-based risk analysis, and a monitoring dashboard. Demonstrated practical knowledge of file handling, automation, and clean code practices.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Education -->
+                <div>
+                    <h2 class="text-xs font-mono uppercase text-brand-400 font-bold tracking-wider mb-2">EDUCATION</h2>
+                    <div class="space-y-2 text-xs">
+                        <div class="flex justify-between">
+                            <div>
+                                <span class="font-bold text-white">Bachelor of Computer Science And Engineering</span>
+                                <p class="text-gray-400">Government College Of Engineering, Salem</p>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-brand-400 font-mono">2026-2029</span>
+                                <p class="text-white font-semibold">CGPA: 8.25</p>
+                            </div>
+                        </div>
+                        <div class="flex justify-between">
+                            <div>
+                                <span class="font-bold text-white">Bachelor of Computer Science And Engineering</span>
+                                <p class="text-gray-400">Government College Of Engineering, Bargur, Krishnagiri</p>
+                            </div>
+                            <span class="text-gray-400 font-mono">2025-2026</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <div>
+                                <span class="font-bold text-white">HSC (12th)</span>
+                                <p class="text-gray-400">SRV Boys Higher Secondary School</p>
+                            </div>
+                            <span class="text-emerald-400 font-semibold font-mono">93.5% (2025)</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <div>
+                                <span class="font-bold text-white">SSLC (10th)</span>
+                                <p class="text-gray-400">The Gugai Boys Higher Secondary School</p>
+                            </div>
+                            <span class="text-cyan-400 font-semibold font-mono">93% (2023)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Additional Information -->
+                <div>
+                    <h2 class="text-xs font-mono uppercase text-brand-400 font-bold tracking-wider mb-2">ADDITIONAL INFORMATION</h2>
+                    <div class="text-xs space-y-1">
+                        <p><strong class="text-white">Languages:</strong> Tamil (Read/Write/Speak), English (Read/Write/Speak), Kannada (Speak), Hindi (Basic Conversation)</p>
+                        <p><strong class="text-white">Interests:</strong> Software Engineering, DSA &amp; Problem Solving, AI &amp; Prompt Automation, Open Source</p>
+                        <p><strong class="text-white">Achievements:</strong> 3rd in Project Presentation (VeriDocs), Government College Of Engineering, Bargur; Participant in Global Online FortyGuard Hackathon.</p>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+        });
+
+        // Mobile Menu Toggle
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        }
+
+        // Resume Modal Functions
+        function openResumeModal() {
+            document.getElementById('resume-modal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeResumeModal() {
+            document.getElementById('resume-modal').classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+
+        // Copy to Clipboard utility
+        function copyToClipboard(text, successMsg) {
+            const tempInput = document.createElement('input');
+            tempInput.value = text;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            
+            try {
+                document.execCommand('copy');
+                showToast(successMsg);
+            } catch (err) {
+                showToast('Failed to copy text');
+            }
+            document.body.removeChild(tempInput);
+        }
+
+        // Toast Notification System
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            const msgSpan = document.getElementById('toast-message');
+            msgSpan.textContent = message;
+            
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+
+        // Contact Form Submission Handler
+        function handleFormSubmit(event) {
+            event.preventDefault();
+            const name = document.getElementById('name').value;
+            showToast(`Thank you, ${name}! Your message was logged.`);
+            document.getElementById('contact-form').reset();
+        }
+
+        async function downloadPortfolioZip() {
+            showToast('Packaging source code into ZIP...');
+            try {
+                const zip = new JSZip();
+                
+                // 1. Full HTML Source Code
+                const htmlContent = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
+                zip.file("index.html", htmlContent);
+
+                // 2. Comprehensive README Documentation
+                const readmeContent = `# Kavin Kumar L - Portfolio Source Code
+
+This ZIP archive contains the complete, self-contained source code for Kavin Kumar L's portfolio website.
+
+## 📂 Included Files
+- \`index.html\`: Complete webpage containing layout, content, design tokens, Tailwind CSS styling, and interactive features.
+- \`README.md\`: Setup and deployment instructions.
+- \`package.json\`: Project metadata for quick local previews.
+
+## 🚀 How to Run
+1. Extract all files from this ZIP package.
+2. Open \`index.html\` in any web browser (Google Chrome, Mozilla Firefox, Microsoft Edge, Safari).
+3. No server or node installation required!
+
+## 🌐 How to Host Online
+- **GitHub Pages:** Upload \`index.html\` to a GitHub repository, go to **Settings > Pages**, and select the main branch.
+- **Vercel or Netlify:** Drag and drop the extracted folder directly onto the Vercel or Netlify dashboard.
+`;
+                zip.file("README.md", readmeContent);
+
+                // 3. Configuration / Package File
+                const packageJson = {
+                    "name": "kavin-kumar-portfolio",
+                    "version": "1.0.0",
+                    "description": "Personal portfolio website for Kavin Kumar L",
+                    "main": "index.html",
+                    "scripts": {
+                        "start": "npx serve ."
+                    },
+                    "author": "Kavin Kumar L",
+                    "license": "MIT"
+                };
+                zip.file("package.json", JSON.stringify(packageJson, null, 2));
+
+                // Generate ZIP Blob and trigger download
+                const zipBlob = await zip.generateAsync({ type: "blob" });
+                saveAs(zipBlob, "Kavin_Kumar_L_Portfolio_Source.zip");
+                showToast('Source ZIP downloaded!');
+            } catch (err) {
+                console.error("ZIP Generation Error: ", err);
+                showToast('Failed to generate ZIP package.');
+            }
+        }
+    </script>
+
+</body></html>

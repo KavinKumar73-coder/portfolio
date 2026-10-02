@@ -1,0 +1,11 @@
+{
+  "name": "kavin-kumar-portfolio",
+  "version": "1.0.0",
+  "description": "Personal portfolio website for Kavin Kumar L",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx serve ."
+  },
+  "author": "Kavin Kumar L",
+  "license": "MIT"
+}
