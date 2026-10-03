@@ -30,7 +30,7 @@
         tagName === 'SELECT' || target.isContentEditable === true;
   }
 
-  // An element absorbs the key only if it both overflows onthe axis being
+  // An element absorbs the key only if it both overflows on the axis being
   // scrolled and is configured to scroll on that axis. The cheap dimension
   // test runs first because getComputedStyle forces a style recalc, and this
   // runs on every keypress. Each axis is read from its own longhand: the
@@ -47,7 +47,7 @@
 
   // Walks up from the event target so nested scrollers keep their behavior.
   // <body> is included because pages that pin the root height make it the
-  // scroll container.
+  // scroll container
   function hasScrollableAncestor(target, horizontal) {
     let node = target;
     while (node && node !== document.documentElement) {
@@ -1546,25 +1546,25 @@ url:e,reason:"blocked_domain_not_allowlisted"},b.parentOrigin);throw new DOMExce
                     <!-- Interactive Message Form -->
                     <div class="p-8 rounded-2xl glass-panel border border-gray-800">
                         <h3 class="text-xl font-bold text-white mb-6">Send Me a Message</h3>
-                        <form id="contact-form" onsubmit="handleFormSubmit(event)" class="space-y-4">
+                        <form id="contact-form" action="https://formspree.io/f/myezrywn" method="POST" class="space-y-4">
                             <div>
                                 <label for="name" class="block text-xs font-mono text-gray-400 mb-1.5">Your Name</label>
-                                <input type="text" id="name" required="" placeholder="John Doe" class="w-full px-4 py-3 rounded-xl bg-gray-900 border border-gray-800 text-white placeholder-gray-500 text-sm focus:outline-none focus:border-brand-500 transition-colors">
+                                <input type="text" id="name" name="name" required="" placeholder="John Doe" class="w-full px-4 py-3 rounded-xl bg-gray-900 border border-gray-800 text-white placeholder-gray-500 text-sm focus:outline-none focus:border-brand-500 transition-colors">
                             </div>
 
                             <div>
                                 <label for="email" class="block text-xs font-mono text-gray-400 mb-1.5">Your Email</label>
-                                <input type="email" id="email" required="" placeholder="john@example.com" class="w-full px-4 py-3 rounded-xl bg-gray-900 border border-gray-800 text-white placeholder-gray-500 text-sm focus:outline-none focus:border-brand-500 transition-colors">
+                                <input type="email" id="email" name="email" required="" placeholder="john@example.com" class="w-full px-4 py-3 rounded-xl bg-gray-900 border border-gray-800 text-white placeholder-gray-500 text-sm focus:outline-none focus:border-brand-500 transition-colors">
                             </div>
 
                             <div>
                                 <label for="subject" class="block text-xs font-mono text-gray-400 mb-1.5">Subject</label>
-                                <input type="text" id="subject" required="" placeholder="Project / Internship Query" class="w-full px-4 py-3 rounded-xl bg-gray-900 border border-gray-800 text-white placeholder-gray-500 text-sm focus:outline-none focus:border-brand-500 transition-colors">
+                                <input type="text" id="subject" name="_subject" required="" placeholder="Project / Internship Query" class="w-full px-4 py-3 rounded-xl bg-gray-900 border border-gray-800 text-white placeholder-gray-500 text-sm focus:outline-none focus:border-brand-500 transition-colors">
                             </div>
 
                             <div>
                                 <label for="message" class="block text-xs font-mono text-gray-400 mb-1.5">Message</label>
-                                <textarea id="message" rows="4" required="" placeholder="Write your message here..." class="w-full px-4 py-3 rounded-xl bg-gray-900 border border-gray-800 text-white placeholder-gray-500 text-sm focus:outline-none focus:border-brand-500 transition-colors resize-none"></textarea>
+                                <textarea id="message" name="message" rows="4" required="" placeholder="Write your message here..." class="w-full px-4 py-3 rounded-xl bg-gray-900 border border-gray-800 text-white placeholder-gray-500 text-sm focus:outline-none focus:border-brand-500 transition-colors resize-none"></textarea>
                             </div>
 
                             <button type="submit" class="w-full py-3.5 px-6 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-semibold text-sm transition-all shadow-lg shadow-brand-600/20 flex items-center justify-center gap-2">
@@ -1780,14 +1780,6 @@ url:e,reason:"blocked_domain_not_allowlisted"},b.parentOrigin);throw new DOMExce
                 toast.classList.remove('translate-y-0', 'opacity-100');
                 toast.classList.add('translate-y-20', 'opacity-0');
             }, 3000);
-        }
-
-        // Contact Form Submission Handler
-        function handleFormSubmit(event) {
-            event.preventDefault();
-            const name = document.getElementById('name').value;
-            showToast(`Thank you, ${name}! Your message was logged.`);
-            document.getElementById('contact-form').reset();
         }
 
         async function downloadPortfolioZip() {
