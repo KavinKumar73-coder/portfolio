@@ -47,7 +47,7 @@
 
   // Walks up from the event target so nested scrollers keep their behavior.
   // <body> is included because pages that pin the root height make it the
-  // scroll container
+  // scroll container.
   function hasScrollableAncestor(target, horizontal) {
     let node = target;
     while (node && node !== document.documentElement) {
@@ -706,10 +706,6 @@ url:e,reason:"blocked_domain_not_allowlisted"},b.parentOrigin);throw new DOMExce
 
             <!-- Quick Action CTA & Mobile Menu Toggle -->
             <div class="flex items-center gap-3">
-                <button onclick="downloadPortfolioZip()" class="hidden sm:inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-lg bg-brand-500/10 hover:bg-brand-500/20 text-brand-400 border border-brand-500/30 transition-all shadow-sm" title="Export complete source code as ZIP file">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="download-cloud" aria-hidden="true" class="lucide lucide-download-cloud w-4 h-4"><path d="M12 13v8l-4-4"></path><path d="m12 21 4-4"></path><path d="M4.393 15.269A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.436 8.284"></path></svg>
-                    Export ZIP
-                </button>
                 <button onclick="openResumeModal()" class="hidden sm:inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-lg bg-gray-800 hover:bg-gray-700 text-white border border-gray-700 transition-all shadow-sm">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="file-text" aria-hidden="true" class="lucide lucide-file-text w-4 h-4 text-brand-500"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"></path><path d="M14 2v5a1 1 0 0 0 1 1h5"></path><path d="M10 9H8"></path><path d="M16 13H8"></path><path d="M16 17H8"></path></svg>
                     Resume
@@ -735,9 +731,6 @@ url:e,reason:"blocked_domain_not_allowlisted"},b.parentOrigin);throw new DOMExce
             <a href="#education" onclick="toggleMobileMenu()" class="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-gray-800">Education</a>
             <a href="#contact" onclick="toggleMobileMenu()" class="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-gray-800">Contact</a>
             <div class="pt-2 flex flex-col gap-2">
-                <button onclick="toggleMobileMenu(); downloadPortfolioZip();" class="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-brand-500/10 hover:bg-brand-500/20 text-brand-400 border border-brand-500/30">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="download-cloud" aria-hidden="true" class="lucide lucide-download-cloud w-4 h-4"><path d="M12 13v8l-4-4"></path><path d="m12 21 4-4"></path><path d="M4.393 15.269A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.436 8.284"></path></svg> Export Source ZIP
-                </button>
                 <button onclick="toggleMobileMenu(); openResumeModal();" class="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-gray-800 hover:bg-gray-700 text-white border border-gray-700">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="file-text" aria-hidden="true" class="lucide lucide-file-text w-4 h-4 text-brand-500"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"></path><path d="M14 2v5a1 1 0 0 0 1 1h5"></path><path d="M10 9H8"></path><path d="M16 13H8"></path><path d="M16 17H8"></path></svg> Download / View Resume
                 </button>
@@ -1780,60 +1773,6 @@ url:e,reason:"blocked_domain_not_allowlisted"},b.parentOrigin);throw new DOMExce
                 toast.classList.remove('translate-y-0', 'opacity-100');
                 toast.classList.add('translate-y-20', 'opacity-0');
             }, 3000);
-        }
-
-        async function downloadPortfolioZip() {
-            showToast('Packaging source code into ZIP...');
-            try {
-                const zip = new JSZip();
-                
-                // 1. Full HTML Source Code
-                const htmlContent = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
-                zip.file("index.html", htmlContent);
-
-                // 2. Comprehensive README Documentation
-                const readmeContent = `# Kavin Kumar L - Portfolio Source Code
-
-This ZIP archive contains the complete, self-contained source code for Kavin Kumar L's portfolio website.
-
-## 📂 Included Files
-- \`index.html\`: Complete webpage containing layout, content, design tokens, Tailwind CSS styling, and interactive features.
-- \`README.md\`: Setup and deployment instructions.
-- \`package.json\`: Project metadata for quick local previews.
-
-## 🚀 How to Run
-1. Extract all files from this ZIP package.
-2. Open \`index.html\` in any web browser (Google Chrome, Mozilla Firefox, Microsoft Edge, Safari).
-3. No server or node installation required!
-
-## 🌐 How to Host Online
-- **GitHub Pages:** Upload \`index.html\` to a GitHub repository, go to **Settings > Pages**, and select the main branch.
-- **Vercel or Netlify:** Drag and drop the extracted folder directly onto the Vercel or Netlify dashboard.
-`;
-                zip.file("README.md", readmeContent);
-
-                // 3. Configuration / Package File
-                const packageJson = {
-                    "name": "kavin-kumar-portfolio",
-                    "version": "1.0.0",
-                    "description": "Personal portfolio website for Kavin Kumar L",
-                    "main": "index.html",
-                    "scripts": {
-                        "start": "npx serve ."
-                    },
-                    "author": "Kavin Kumar L",
-                    "license": "MIT"
-                };
-                zip.file("package.json", JSON.stringify(packageJson, null, 2));
-
-                // Generate ZIP Blob and trigger download
-                const zipBlob = await zip.generateAsync({ type: "blob" });
-                saveAs(zipBlob, "Kavin_Kumar_L_Portfolio_Source.zip");
-                showToast('Source ZIP downloaded!');
-            } catch (err) {
-                console.error("ZIP Generation Error: ", err);
-                showToast('Failed to generate ZIP package.');
-            }
         }
     </script>
 
